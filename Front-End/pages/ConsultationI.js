@@ -4,20 +4,20 @@ import { FaEquals } from 'react-icons/fa6';
 import Navbar from './navbar';
 import ConsultationNavbar from './ConsultationNavbar'; 
 
-const Consultation = () => {
+const ConsultationI = () => {
   
   const mockData = [
     {
       date: '01/01/2024',
       compte: '1111',
-      nom: 'YYYYYYY',
+      nom: 'Cristiano Ronaldo',
       debit: '10,000',
       credit: '55,000'
     },
     {
       date: '05/02/2024',
       compte: '1111',
-      nom: 'YYYYYYY',
+      nom: 'Lionel Messi',
       debit: '181,000',
       credit: '5,000'
     }
@@ -53,14 +53,14 @@ const Consultation = () => {
           </div>
         </div>
         
-        {/* Table */}
-<div className="border border-[#083344] rounded-xl overflow-x-auto mb-8 shadow-lg">
+        {/* Table  I */}
+<div className="border border-[#083344] rounded-xl overflow-x-auto mb-14 shadow-lg">
   <table className="w-full text-left border-collapse">
     <thead>
       {/* First Row: Date */}
       <tr>
-                <th className="px-4 py-2 text-center" colSpan="1">Date</th>
-                <th className="px-4 py-2 text-center" colSpan="3">DD / MM / YYYY</th>
+                <th className="px-4 py-2 bg-[#002c3c] text-center text-white border border-[#f2f1ec]" colSpan="1">Date</th>
+                <th className="px-4 py-3 border-r border-[#083344] text-center" colSpan="3">DD / MM / YYYY</th>
               </tr>
 
       {/* Third Row: Column Headers */}
@@ -74,8 +74,6 @@ const Consultation = () => {
 
       {/* Fourth Row: Sub-Headers for Montant */}
       <tr>
-        {/* <td className="px-4 py-2 bg-[#002c3c] text-white border-b border-[#083344]"></td>
-        <td className="px-4 py-2 bg-[#002c3c] text-white border-b border-[#083344]"></td> */}
         <th className="px-4 py-2 bg-[#002c3c] text-center text-white border border-[#f2f1ec]">Débit</th>
         <th className="px-4 py-2 bg-[#002c3c] text-center text-white border border-[#f2f1ec]">Crédit</th>
       </tr>
@@ -95,10 +93,57 @@ const Consultation = () => {
     </tbody>
   </table>
 </div>
+
+{/* Table II */}
+<div className="border border-[#083344] rounded-xl overflow-x-auto mb-8 shadow-lg">
+  <table className="w-full text-left border-collapse">
+  <thead>
+      <tr>
+        <th className="px-4 py-2 bg-[#002c3c] text-center text-white border border-[#f2f1ec]">Libellé</th>
+        <th className="px-4 py-3 text-center border border-[#083344]" colSpan="2">XXXXXXXXXXXXX</th>
+        <th className="px-4 py-3 text-center border border-[#083344]" colSpan="2">
+          <button className="w-full bg-[#083344] py-2 px-4 flex items-center justify-center text-white rounded-md">
+            <FaEye className="mr-2" /> Afficher Justification
+          </button>
+        </th>
+      </tr>
+
+      <tr>
+        <th className="px-4 py-2 bg-[#002c3c] text-center text-white border border-[#f2f1ec]">Date</th>
+        <th className="px-4 py-2 text-center border border-[#083344]" colSpan="4">DD / MM / YYYY</th>
+      </tr>
+
+      <tr>
+        <th className="px-4 py-2 bg-[#002c3c] text-center text-white border border-[#f2f1ec]" rowSpan={2}>N° du compte</th>
+        <th className="px-4 py-2 bg-[#002c3c] text-center text-white border border-[#f2f1ec]" rowSpan={2}>Nom du compte</th>
+        <th className="px-4 py-2 bg-[#002c3c] text-center text-white border border-[#f2f1ec]" colSpan={2}>Montant</th>
+      </tr>
+
+      <tr>
+        <th className="px-4 py-2 bg-[#002c3c] text-center text-white border border-[#f2f1ec]">Débit</th>
+        <th className="px-4 py-2 bg-[#002c3c] text-center text-white border border-[#f2f1ec]">Crédit</th>
+      </tr>
+    </thead>
+      <tbody>
+      {mockData.map((row, idx) => (
+        <tr
+          key={idx}
+          className="bg-white border-t border-[#083344] hover:bg-[#f9fafb]"
+        >
+          <td className="px-4 py-3 border-r border-[#083344]">{row.compte}</td>
+          <td className="px-4 py-3 border-r border-[#083344]">{row.nom}</td>
+          <td className="px-4 py-3 border-r border-[#083344]">{row.debit}</td>
+          <td className="px-4 py-3">{row.credit}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>  
+
+</div>
     </div>
     </div>
   </div>
   )
 }
 
-export default Consultation;
+export default ConsultationI;
