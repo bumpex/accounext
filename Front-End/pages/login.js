@@ -1,12 +1,42 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import AccountNextLogo from './assets/AccouNext.png';
 
 const Login = () => {
-  const [showPassword, setShowPassword] = React.useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+  const navigate = useNavigate();
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await fetch('http://localhost:8000/login.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        localStorage.setItem('user', JSON.stringify(data.user));
+        navigate('/dashboard'); 
+      } else {
+        setErrorMsg(data.error || 'Login failed');
+      }
+    } catch (error) {
+      setErrorMsg('An error occurred. Please try again.');
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#083344] to-[#0a4b63] flex flex-col mb-12">
+    <div className="min-h-screen bg-gradient-to-br from-[#083344] to-[#0a4b63] flex flex-col">
       {/* Logo Section */}
       <div className="p-6">
         <img src={AccountNextLogo} alt="Accounext Logo" className="h-12" />
@@ -15,10 +45,11 @@ const Login = () => {
       {/* Login Form Section */}
       <div className="flex-1 flex items-center justify-center px-4">
         <div className="bg-white/10 backdrop-blur-lg p-8 rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-500 hover:scale-[1.02]">
-          {/* <h2 className="text-3xl font-bold text-center mb-8 text-white">Welcome Back</h2> */}
           <h2 className="text-3xl font-bold text-center mb-8 text-white">Login</h2>
-          
-          <form className="space-y-6">
+
+          <form onSubmit={handleLogin} className="space-y-6">
+            {errorMsg && <p className="text-red-400 font-bold text-sm text-center">{errorMsg}</p>}
+
             <div className="space-y-2">
               <label htmlFor="email" className="block text-sm font-medium text-white/90">Email</label>
               <div className="relative">
@@ -29,6 +60,8 @@ const Login = () => {
                   type="email"
                   id="email"
                   name="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                   className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-300"
                   placeholder="Enter your email"
@@ -43,9 +76,11 @@ const Login = () => {
                   <FaLock className="text-white/70" />
                 </div>
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   id="password"
                   name="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   required
                   className="w-full pl-10 pr-12 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-300"
                   placeholder="Enter your password"
@@ -91,9 +126,9 @@ const Login = () => {
           <div className="mt-6 text-center">
             <p className="text-sm text-white/70">
               Don't have an account?{' '}
-              <a href="/register" className="text-blue-400 hover:text-blue-300 transition-colors duration-300">
+              <Link to="/register" className="text-blue-400 hover:text-blue-300 transition-colors duration-300">
                 Sign up
-              </a>
+              </Link>
             </p>
           </div>
         </div>
