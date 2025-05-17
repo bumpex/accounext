@@ -1,61 +1,45 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
 import { FaUsers, FaHandshake, FaWallet, FaChartLine, FaUser, FaStore } from 'react-icons/fa';
 import Navbar from './navbar';
+import TresorerieNavbar from './TresorerieNavbar';
+import UserMenu from './UserMenu';
 
 const Tresorerie = () => {
+  const [clients, setClients] = useState([]);
+  const [fournisseurs, setFournisseurs] = useState([]);
+
   const cashFlowData = [
-    { month: 'Jan', cashIn: 20, cashOut: 10 },
-    { month: 'Feb', cashIn: 35, cashOut: 18 },
-    { month: 'Mar', cashIn: 33, cashOut: 22 },
-    { month: 'Apr', cashIn: 40, cashOut: 28 },
-    { month: 'May', cashIn: 37, cashOut: 30 },
+    { month: 'Jan', Debit: 20, Credit: 10 },
+    { month: 'Feb', Debit: 35, Credit: 18 },
+    { month: 'Mar', Debit: 33, Credit: 22 },
+    { month: 'Apr', Debit: 40, Credit: 28 },
+    { month: 'May', Debit: 37, Credit: 30 },
   ];
 
-  const clients = [
-    { name: 'Kylian Mbappé', amount: '12 000€' },
-    { name: 'Erling Haaland', amount: '8 500€' },
-    { name: 'Vinícius Jr.', amount: '6 200€' },
-    { name: 'Kevin De Bruyne', amount: '14 000€' },
-    { name: 'Mohamed Salah', amount: '5 750€' },
-  ];
+  useEffect(() => {
+    fetch('http://localhost:8000/get_clients.php')
+      .then(res => res.json())
+      .then(data => setClients(data))
+      .catch(err => console.error('Error fetching clients:', err));
 
-  const fournisseurs = [
-    { name: 'Lionel Messi', amount: '7 300€' },
-    { name: 'Cristiano Ronaldo', amount: '5 000€' },
-    { name: 'Neymar Jr.', amount: '6 700€' },
-    { name: 'Antoine Griezmann', amount: '4 800€' },
-    { name: 'Robert Lewandowski', amount: '9 000€' },
-  ];
-
-  const tabs = [
-    { label: 'Vue d’ensemble', icon: <FaChartLine className="mr-2" /> },
-    { label: 'Clients', icon: <FaUsers className="mr-2" /> },
-    { label: 'Fournisseurs', icon: <FaStore className="mr-2" /> },
-    { label: 'Transactrice', icon: <FaHandshake className="mr-2" /> },
-  ];
+    fetch('http://localhost:8000/get_fournisseurs.php')
+      .then(res => res.json())
+      .then(data => setFournisseurs(data))
+      .catch(err => console.error('Error fetching fournisseurs:', err));
+  }, []);
 
   return (
     <div className="flex min-h-screen bg-[#f2f1ec]">
       <Navbar />
+      <UserMenu />
       <div className="flex-1 p-8 overflow-y-auto">
         <h1 className="text-3xl font-bold text-[#083344] mb-2 text-center">Trésorerie</h1>
         <div className="w-1/2 h-0.5 bg-[#083344] mx-auto mb-10"></div>
 
-        {/* Tabs with icons */}
-        <div className="w-full justify-between flex gap-4 mb-8">
-          {tabs.map((tab, index) => (
-            <button
-              key={index}
-              className="flex items-center justify-center px-16 py-7 rounded-lg bg-[#083344] text-white font-medium hover:bg-[#083344]/90 transition"
-            >
-              {tab.icon}
-              {tab.label}
-            </button>
-          ))}
-        </div>
+        <TresorerieNavbar />
 
         {/* Cards */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-2">
@@ -81,8 +65,8 @@ const Tresorerie = () => {
                 <XAxis dataKey="month" />
                 <YAxis />
                 <Tooltip />
-                <Line type="monotone" dataKey="cashIn" stroke="#083344" strokeWidth={2} />
-                <Line type="monotone" dataKey="cashOut" stroke="#60A5FA" strokeWidth={2} />
+                <Line type="monotone" dataKey="Debit" stroke="#083344" strokeWidth={2} />
+                <Line type="monotone" dataKey="Credit" stroke="#60A5FA" strokeWidth={2} />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -103,7 +87,7 @@ const Tresorerie = () => {
                     <FaUser className="text-[#083344]" />
                     <span>{client.name}</span>
                   </div>
-                  <span>{client.amount}</span>
+                  <span>{client.amount} €</span>
                 </div>
               ))}
             </div>
@@ -122,7 +106,7 @@ const Tresorerie = () => {
                     <FaUser className="text-[#083344]" />
                     <span>{fournisseur.name}</span>
                   </div>
-                  <span>{fournisseur.amount}</span>
+                  <span>{fournisseur.amount} €</span>
                 </div>
               ))}
             </div>
