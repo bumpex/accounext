@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import Navbar from "../components/navbar";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function Quotidien() {
   const [formData, setFormData] = useState({
-    date: '',
+    date: new Date().toISOString().split('T')[0],
     libelle: '',
     justification: null,
     showJustification: true,
@@ -17,52 +20,98 @@ export default function Quotidien() {
 
   const [fileName, setFileName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [balanceError, setBalanceError] = useState('');
+
+  // Validate debit/credit balance whenever entries change
+  useEffect(() => {
+    validateBalance();
+  }, [formData.entries]);
+
+  const validateBalance = () => {
+    let totalDebit = 0;
+    let totalCredit = 0;
+
+    formData.entries.forEach(entry => {
+      const amount = parseFloat(entry.montant) || 0;
+      if (entry.type === 'debit') {
+        totalDebit += amount;
+      } else {
+        totalCredit += amount;
+      }
+    });
+
+    if (totalDebit.toFixed(2) !== totalCredit.toFixed(2)) {
+      setBalanceError(`Le total débit (${totalDebit.toFixed(2)}) ne correspond pas au total crédit (${totalCredit.toFixed(2)})`);
+      return false;
+    } else {
+      setBalanceError('');
+      return true;
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    try {
-      const submissionData = new FormData();
-      submissionData.append('date', formData.date);
-      submissionData.append('libelle', formData.libelle);
-      
-      formData.entries.forEach((entry, index) => {
-        submissionData.append(`entries[${index}][compteNum]`, entry.compteNum);
-        submissionData.append(`entries[${index}][compteNom]`, entry.compteNom);
-        submissionData.append(`entries[${index}][montant]`, entry.montant);
-        submissionData.append(`entries[${index}][type]`, entry.type);
-      });
+    if (!validateBalance()) {
+      toast.error("Veuillez équilibrer les débits et crédits avant de soumettre");
+      setIsSubmitting(false);
+      return;
+    }
 
+    try {
+      const formDataToSend = new FormData();
+      
+      // Add basic fields
+      formDataToSend.append('date', formData.date);
+      formDataToSend.append('libelle', formData.libelle);
+      
+      // Add entries as properly formatted JSON
+      const entriesToSend = formData.entries.map(entry => ({
+        ...entry,
+        montant: parseFloat(entry.montant)
+      }));
+      formDataToSend.append('entries', JSON.stringify(entriesToSend));
+
+      // Add file if exists
       if (formData.justification) {
-        submissionData.append('justification', formData.justification);
+        formDataToSend.append('justification', formData.justification);
       }
 
-      console.log("Form data ready for PHP:", {
-        date: formData.date,
-        libelle: formData.libelle,
-        entries: formData.entries,
-        justification: formData.justification?.name || null
+      const response = await axios.post('http://localhost/accounext/quotidien.php', formDataToSend, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
       });
 
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setFormData({
-        date: '',
-        libelle: '',
-        justification: null,
-        showJustification: true,
-        entries: [{
-          compteNum: '',
-          compteNom: '',
-          montant: '',
-          type: 'debit'
-        }]
-      });
-      setFileName('');
+      if (response.data.success) {
+        toast.success("Écriture comptable enregistrée avec succès!");
+        resetForm();
+      } else {
+        throw new Error(response.data.message || "Erreur lors de l'enregistrement");
+      }
+    } catch (error) {
+      console.error("Submission error:", error);
+      toast.error(error.response?.data?.message || error.message || "Une erreur est survenue");
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      date: new Date().toISOString().split('T')[0],
+      libelle: '',
+      justification: null,
+      showJustification: true,
+      entries: [{
+        compteNum: '',
+        compteNom: '',
+        montant: '',
+        type: 'debit'
+      }]
+    });
+    setFileName('');
   };
 
   const handleInputChange = (e) => {
@@ -119,6 +168,7 @@ export default function Quotidien() {
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Navbar />
+      <ToastContainer position="top-right" autoClose={5000} />
       
       <div className="flex-1 p-6 lg:p-8 ml-0 lg:ml-64 transition-all duration-300">
         <div className="max-w-4xl mx-auto">
@@ -128,7 +178,6 @@ export default function Quotidien() {
             <p className="ml-64 text-gray-600 mt-2">Enregistrez vos opérations comptables quotidiennes</p>
           </div>
           
-          
           <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
             <div className="p-6 md:p-8">
               <h2 className="text-xl font-semibold text-gray-800 mb-6 pb-2 border-b border-gray-100">
@@ -136,7 +185,6 @@ export default function Quotidien() {
               </h2>
               
               <form onSubmit={handleSubmit}>
-                
                 <div className="grid md:grid-cols-2 gap-6 mb-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="date">
@@ -146,11 +194,11 @@ export default function Quotidien() {
                       id="date"
                       type="date"
                       name="date"
-                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300 bg-gray-100 cursor-not-allowed"
                       value={formData.date}
-                      onChange={handleInputChange}
-                      required
+                      readOnly
                     />
+                    <p className="mt-1 text-xs text-gray-500">Date automatique (non modifiable)</p>
                   </div>
                   
                   <div>
@@ -170,7 +218,6 @@ export default function Quotidien() {
                   </div>
                 </div>
                 
-                
                 <div className="mb-8">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-sm font-medium text-gray-700">Détails des comptes</h3>
@@ -186,6 +233,12 @@ export default function Quotidien() {
                     </button>
                   </div>
                   
+                  {balanceError && (
+                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                      {balanceError}
+                    </div>
+                  )}
+                  
                   <div className="space-y-4">
                     {formData.entries.map((entry, index) => (
                       <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
@@ -196,7 +249,7 @@ export default function Quotidien() {
                             </label>
                             <input
                               id={`compteNum-${index}`}
-                              type="number"
+                              type="text"
                               className="w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                               placeholder="N° de compte"
                               value={entry.compteNum}
@@ -268,7 +321,6 @@ export default function Quotidien() {
                   </div>
                 </div>
                 
-                
                 {formData.showJustification && (
                   <div className="mb-8">
                     <div className="flex justify-between items-center mb-3">
@@ -297,6 +349,7 @@ export default function Quotidien() {
                             type="file" 
                             className="hidden" 
                             onChange={handleFileChange}
+                            accept="image/jpeg,image/png,application/pdf"
                           />
                         </label>
                       </div>
@@ -326,25 +379,10 @@ export default function Quotidien() {
                   </div>
                 )}
                 
-                
                 <div className="flex flex-col-reverse sm:flex-row justify-end space-y-4 sm:space-y-0 space-x-0 sm:space-x-3">
                   <button
                     type="button"
-                    onClick={() => {
-                      setFormData({
-                        date: '',
-                        libelle: '',
-                        justification: null,
-                        showJustification: true,
-                        entries: [{
-                          compteNum: '',
-                          compteNom: '',
-                          montant: '',
-                          type: 'debit'
-                        }]
-                      });
-                      setFileName('');
-                    }}
+                    onClick={resetForm}
                     className="px-6 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
                   >
                     Annuler
@@ -352,7 +390,7 @@ export default function Quotidien() {
                   <button
                     type="submit"
                     className="px-6 py-2.5 rounded-lg bg-[#083344] text-white font-medium hover:bg-blue-700 transition-colors flex items-center justify-center"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || balanceError}
                   >
                     {isSubmitting ? (
                       <>
