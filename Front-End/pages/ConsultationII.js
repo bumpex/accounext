@@ -84,7 +84,7 @@ const ConsultationII = () => {
           {/* Table */}
           <div className="border border-[#083344] rounded-xl overflow-x-auto mb-14 shadow-lg">
             <table className="w-full text-left border-collapse">
-              <thead className="bg-[#002c3c] text-white">
+              <thead className="bg-[#08334443] text-[#083344]">
                 <tr>
                   <th className="px-4 py-2 text-center border border-[#f2f1ec]">N° du Compte</th>
                   <th className="px-4 py-2 text-center border border-[#f2f1ec]">Nom du Compte</th>
