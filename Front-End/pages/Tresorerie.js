@@ -3,9 +3,9 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
 import { FaUsers, FaHandshake, FaWallet, FaChartLine, FaUser, FaStore } from 'react-icons/fa';
-import Navbar from './navbar';
-import TresorerieNavbar from './TresorerieNavbar';
-import UserMenu from './UserMenu';
+import Navbar from '../components/navbar';
+import TresorerieNavbar from '../components/TresorerieNavbar';
+import UserMenu from '../components/UserMenu';
 
 const Tresorerie = () => {
   const [clients, setClients] = useState([]);
@@ -36,13 +36,13 @@ const Tresorerie = () => {
       <Navbar />
       <UserMenu />
       <div className="flex-1 p-8 overflow-y-auto">
-        <h1 className="text-3xl font-bold text-[#083344] mb-2 text-center">Trésorerie</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-[#083344] mb-6 text-center">Trésorerie</h1>
         <div className="w-1/2 h-0.5 bg-[#083344] mx-auto mb-10"></div>
 
         <TresorerieNavbar />
 
         {/* Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-2">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-2 mb-2">
           {/* Solde de trésorerie */}
           <div className="bg-white rounded-2xl p-8 shadow-lg md:col-span-4">
             <h2 className="text-xl font-bold text-[#083344] mb-6 flex items-center gap-2">
