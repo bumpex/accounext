@@ -127,6 +127,7 @@ try {
         ");
 
         foreach ($entries as $entry) {
+            // First insert the entry
             $success = $stmt->execute([
                 $journalEntryId,
                 $entry['compteNum'],
@@ -141,6 +142,25 @@ try {
             if (!$success) {
                 $error = $stmt->errorInfo();
                 throw new Exception("Insertion échouée: " . $error[2]);
+            }
+
+            // Then update the account balance
+            $updateStmt = $pdo->prepare("
+                UPDATE comptes 
+                SET montant_" . ($entry['type'] === 'debit' ? 'debit' : 'credit') . " = 
+                    montant_" . ($entry['type'] === 'debit' ? 'debit' : 'credit') . " + ?,
+                    updated_at = NOW()
+                WHERE numero_compte = ?
+            ");
+            
+            $updateSuccess = $updateStmt->execute([
+                $entry['montant'],
+                $entry['compteNum']
+            ]);
+            
+            if (!$updateSuccess) {
+                $error = $updateStmt->errorInfo();
+                throw new Exception("Balance update failed: " . $error[2]);
             }
         }
 

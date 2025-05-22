@@ -21,6 +21,23 @@ export default function Quotidien() {
   const [fileName, setFileName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [balanceError, setBalanceError] = useState('');
+  const [accountSuggestions, setAccountSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
+  const [activeSuggestionField, setActiveSuggestionField] = useState('');
+
+  // Fetch accounts on component mount
+  useEffect(() => {
+    const fetchAccounts = async () => {
+      try {
+        const response = await axios.get('http://localhost/accounext/get_accounts.php');
+        setAccountSuggestions(response.data);
+      } catch (error) {
+        console.error("Error fetching accounts:", error);
+      }
+    };
+    fetchAccounts();
+  }, []);
 
   // Validate debit/credit balance whenever entries change
   useEffect(() => {
@@ -47,6 +64,55 @@ export default function Quotidien() {
       setBalanceError('');
       return true;
     }
+  };
+
+  const handleAccountNumberChange = async (index, value) => {
+    const newEntries = [...formData.entries];
+    newEntries[index].compteNum = value;
+    
+    // Find matching account
+    const matchedAccount = accountSuggestions.find(
+      acc => acc.numero_compte === value
+    );
+    
+    if (matchedAccount) {
+      newEntries[index].compteNom = matchedAccount.nom_compte;
+    }
+    
+    setFormData(prev => ({ ...prev, entries: newEntries }));
+  };
+
+  const handleAccountNameChange = async (index, value) => {
+    const newEntries = [...formData.entries];
+    newEntries[index].compteNom = value;
+    
+    // Find matching account
+    const matchedAccount = accountSuggestions.find(
+      acc => acc.nom_compte.toLowerCase() === value.toLowerCase()
+    );
+    
+    if (matchedAccount) {
+      newEntries[index].compteNum = matchedAccount.numero_compte;
+    }
+    
+    setFormData(prev => ({ ...prev, entries: newEntries }));
+  };
+
+  const getFilteredSuggestions = (index, field, value) => {
+    if (!value) return [];
+    
+    return accountSuggestions.filter(account => {
+      const searchField = field === 'compteNum' ? account.numero_compte : account.nom_compte;
+      return searchField.toLowerCase().includes(value.toLowerCase());
+    });
+  };
+
+  const handleSuggestionClick = (index, field, suggestion) => {
+    const newEntries = [...formData.entries];
+    newEntries[index].compteNum = suggestion.numero_compte;
+    newEntries[index].compteNom = suggestion.nom_compte;
+    setFormData(prev => ({ ...prev, entries: newEntries }));
+    setShowSuggestions(false);
   };
 
   const handleSubmit = async (e) => {
@@ -170,7 +236,7 @@ export default function Quotidien() {
       <Navbar />
       <ToastContainer position="top-right" autoClose={5000} />
       
-      <div className="flex-1 p-6 lg:p-8 ml-0 lg:ml-64 transition-all duration-300">
+      <div className="flex-1 p-6 lg:p-8 ml-0  transition-all duration-300">
         <div className="max-w-4xl mx-auto">
           
           <div className="mb-8">
@@ -243,7 +309,7 @@ export default function Quotidien() {
                     {formData.entries.map((entry, index) => (
                       <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                         <div className="grid md:grid-cols-2 gap-4 mb-3">
-                          <div>
+                          <div className="relative">
                             <label className="block text-xs font-medium text-gray-500 mb-1" htmlFor={`compteNum-${index}`}>
                               Numéro de compte <span className="text-red-500">*</span>
                             </label>
@@ -253,11 +319,30 @@ export default function Quotidien() {
                               className="w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                               placeholder="N° de compte"
                               value={entry.compteNum}
-                              onChange={(e) => handleEntryChange(index, 'compteNum', e.target.value)}
+                              onChange={(e) => {
+                                handleAccountNumberChange(index, e.target.value);
+                                setShowSuggestions(true);
+                                setActiveSuggestionIndex(index);
+                                setActiveSuggestionField('compteNum');
+                              }}
                               required
                             />
+                            {showSuggestions && activeSuggestionIndex === index && activeSuggestionField === 'compteNum' && (
+                              <div className="absolute z-10 mt-1 w-full bg-white shadow-lg rounded-md border border-gray-200 max-h-60 overflow-auto">
+                                {getFilteredSuggestions(index, 'compteNum', entry.compteNum).map((suggestion, i) => (
+                                  <div
+                                    key={i}
+                                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                    onClick={() => handleSuggestionClick(index, 'compteNum', suggestion)}
+                                  >
+                                    <div className="font-medium">{suggestion.numero_compte}</div>
+                                    <div className="text-sm text-gray-500">{suggestion.nom_compte}</div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
-                          <div>
+                          <div className="relative">
                             <label className="block text-xs font-medium text-gray-500 mb-1" htmlFor={`compteNom-${index}`}>
                               Nom du compte <span className="text-red-500">*</span>
                             </label>
@@ -267,9 +352,28 @@ export default function Quotidien() {
                               className="w-full px-4 py-2 rounded-md border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                               placeholder="Nom du compte"
                               value={entry.compteNom}
-                              onChange={(e) => handleEntryChange(index, 'compteNom', e.target.value)}
+                              onChange={(e) => {
+                                handleAccountNameChange(index, e.target.value);
+                                setShowSuggestions(true);
+                                setActiveSuggestionIndex(index);
+                                setActiveSuggestionField('compteNom');
+                              }}
                               required
                             />
+                            {showSuggestions && activeSuggestionIndex === index && activeSuggestionField === 'compteNom' && (
+                              <div className="absolute z-10 mt-1 w-full bg-white shadow-lg rounded-md border border-gray-200 max-h-60 overflow-auto">
+                                {getFilteredSuggestions(index, 'compteNom', entry.compteNom).map((suggestion, i) => (
+                                  <div
+                                    key={i}
+                                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                    onClick={() => handleSuggestionClick(index, 'compteNom', suggestion)}
+                                  >
+                                    <div className="font-medium">{suggestion.nom_compte}</div>
+                                    <div className="text-sm text-gray-500">{suggestion.numero_compte}</div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
                         
@@ -409,7 +513,6 @@ export default function Quotidien() {
                       </>
                     )}
                   </button>
-                  
                 </div>
               </form>
             </div>
