@@ -11,7 +11,7 @@ const tabs = [
   { label: 'Vue d’ensemble', icon: <FaChartLine className="mr-2" />, path: '/tresorerie' },
   { label: 'Clients', icon: <FaUsers className="mr-2" />, path: '/clients' },
   { label: 'Fournisseurs', icon: <FaStore className="mr-2" />, path: '/fournisseurs' },
-  { label: 'Transactrice', icon: <FaHandshake className="mr-2" />, path: '/transactrice' },
+  { label: 'Transaction', icon: <FaHandshake className="mr-2" />, path: '/transaction' },
 ];
 
 const TresorerieNavbar = () => {
