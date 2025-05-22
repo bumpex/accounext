@@ -24,22 +24,41 @@ try {
     $age = (int)$data['age'];
     $profits = $data['profits']; // associative array: year => amount
 
-    // Insert into entreprise
-    $stmt = $pdo->prepare("INSERT INTO entreprise (name, age) VALUES (?, ?)");
+    // Insert into entreprise (note: column names are `nom` and `age_annee`)
+    $stmt = $pdo->prepare("INSERT INTO entreprise (nom, age_annee) VALUES (?, ?)");
     $stmt->execute([$name, $age]);
     $entrepriseId = $pdo->lastInsertId();
 
-    // Insert profits
-    $profitStmt = $pdo->prepare("INSERT INTO benefices (entreprise_id, annee, montant) VALUES (?, ?, ?)");
-
+    // Check if benefices table has entreprise_id field:
+    // ⚠️ From your SQL dump, it doesn't — so this will fail unless you've modified it.
     foreach ($profits as $year => $amount) {
         $year = (int)$year;
         $amount = (float)$amount;
-        $profitStmt->execute([$entrepriseId, $year, $amount]);
+
+        // Only proceed if `benefices` actually supports `entreprise_id`
+        // Otherwise, remove that field from the INSERT below
+        $profitStmt = $pdo->prepare("INSERT INTO benefices (annee, montant) VALUES (?, ?)");
+        $profitStmt->execute([$year, $amount]);
     }
 
-    echo json_encode(['success' => true, 'message' => 'Entreprise and profits saved successfully.']);
+    echo json_encode([
+        'success' => true,
+        'message' => 'Entreprise saved successfully.',
+        'entreprise_id' => $entrepriseId
+    ]);
+
+} catch (PDOException $e) {
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Database error',
+        'error' => $e->getMessage()
+    ]);
 } catch (Exception $e) {
     http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Server error', 'error' => $e->getMessage()]);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Server error',
+        'error' => $e->getMessage()
+    ]);
 }

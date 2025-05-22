@@ -2,11 +2,14 @@ import { useState } from "react";
 import Navbar from "../components/navbar";
 import axios from "axios";
 
-export default function fournisseurs() {
+import TresorerieNavbar from "../components/TresorerieNavbar";
+import UserMenu from "../components/UserMenu";
+
+export default function Fournisseurs() {
   const [formData, setFormData] = useState({
     Nom: '',
     Email: '',
-    Telphone: '',
+    Telephone: '',
     Adresse: '',
     Solde: '',
     Description: ''
@@ -31,11 +34,11 @@ export default function fournisseurs() {
       
       const response = await axios({
         method: 'POST',
-        url: '#.php',
-        data: clientData,
+        url: 'http://localhost:8000/fournisseurs.php',
+        data: fournisseurData ,
     })
       
-      const data = await response.json();
+      const data = response.data;
       
       if (data.status === "success") {
         alert("✅  fournisseur ajouté avec succès!");
@@ -43,7 +46,7 @@ export default function fournisseurs() {
         setFormData({
           Nom: '',
           Email: '',
-          Telphone: '',
+          Telephone: '',
           Adresse: '',
           Solde: '',
           Description: ''
@@ -60,19 +63,22 @@ export default function fournisseurs() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-[#f2f1ec]">
       <Navbar />
+      <UserMenu />
       
-      <div className="flex-1 p-6 lg:p-8 ml-0 lg:ml-64">
-        <div className="max-w-4xl mx-auto">
+      <div className="flex-1 p-8 overflow-y-auto ">
+        <div className="mx-auto">
           
-          <div className="mb-8 ml-72">
+          <div className="mb-8 text-center justify-center">
             <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Gestion des fournisseurs</h1>
             <p className="text-gray-600 mt-2">Ajouter un nouveau  fournisseur à votre système</p>
           </div>
           
           
-          <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+          <TresorerieNavbar />
+
+          <div className="bg-white rounded-xl shadow-md overflow-hidden border px-16 border-gray-100">
             <div className="p-6 md:p-8">
               <h2 className="text-xl font-semibold text-gray-800 mb-6 pb-2 border-b border-gray-100">
                 Informations du  fournisseur
@@ -115,16 +121,16 @@ export default function fournisseurs() {
                   
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="Telphone">
+                    <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="Telephone">
                       Téléphone <span className="text-red-500">*</span>
                     </label>
                     <input
-                      id="Telphone"
-                      name="Telphone"
+                      id="Telephone"
+                      name="Telephone"
                       type="tel"
                       className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                       placeholder="06 12 34 56 78"
-                      value={formData.Telphone}
+                      value={formData.Telephone}
                       onChange={handleChange}
                       required
                     />
@@ -187,7 +193,7 @@ export default function fournisseurs() {
                     onClick={() => setFormData({
                       Nom: '',
                       Email: '',
-                      Telphone: '',
+                      Telephone: '',
                       Adresse: '',
                       Solde: '',
                       Description: ''

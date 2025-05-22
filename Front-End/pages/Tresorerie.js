@@ -6,30 +6,66 @@ import { FaUsers, FaHandshake, FaWallet, FaChartLine, FaUser, FaStore } from 're
 import Navbar from '../components/navbar';
 import TresorerieNavbar from '../components/TresorerieNavbar';
 import UserMenu from '../components/UserMenu';
+import SoldeForm from '../components/SoldeForm'; // Adjust path as needed
 
 const Tresorerie = () => {
   const [clients, setClients] = useState([]);
   const [fournisseurs, setFournisseurs] = useState([]);
-
-  const cashFlowData = [
-    { month: 'Jan', Debit: 20, Credit: 10 },
-    { month: 'Feb', Debit: 35, Credit: 18 },
-    { month: 'Mar', Debit: 33, Credit: 22 },
-    { month: 'Apr', Debit: 40, Credit: 28 },
-    { month: 'May', Debit: 37, Credit: 30 },
-  ];
+  const [cashFlowData, setCashFlowData] = useState([]);
+  const [soldeData, setSoldeData] = useState({
+    total: 0,
+    details: []
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
+    // Fetch clients
     fetch('http://localhost:8000/get_clients.php')
       .then(res => res.json())
       .then(data => setClients(data))
       .catch(err => console.error('Error fetching clients:', err));
 
+    // Fetch fournisseurs
     fetch('http://localhost:8000/get_fournisseurs.php')
       .then(res => res.json())
       .then(data => setFournisseurs(data))
       .catch(err => console.error('Error fetching fournisseurs:', err));
+
+    // Fetch cash flow flux
+    fetch('http://localhost:8000/get_tresorerie_flux.php')
+      .then(res => {
+        if (!res.ok) throw new Error("Network response was not ok");
+        return res.json();
+      })
+      .then(data => {
+        setCashFlowData(data || []);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Error fetching cash flow data:', err);
+        setError('Failed to load chart data');
+        setLoading(false);
+      });
+
+    // Fetch solde de trésorerie
+    fetch('http://localhost:8000/get_tresorerie_solde.php')
+      .then(res => res.json())
+      .then(data => {
+        setSoldeData({
+          total: data.total || 0,
+          details: data.details || []
+        });
+      })
+      .catch(err => console.error('Error fetching solde data:', err));
   }, []);
+
+  const handleSoldeUpdate = (updatedData) => {
+    setSoldeData({
+      total: updatedData.total,
+      details: updatedData.details || []
+    });
+  };
 
   return (
     <div className="flex min-h-screen bg-[#f2f1ec]">
@@ -49,26 +85,52 @@ const Tresorerie = () => {
               <FaWallet />
               Solde de Trésorerie
             </h2>
-            <div className="text-3xl font-bold mb-6">123456789 €</div>
-            <div className="space-y-2">
-              <p>Banque: <span className="font-semibold">12345,67 €</span></p>
-              <p>Caisse: <span className="font-semibold">12567,89 €</span></p>
+
+            <div className="text-3xl font-bold mb-6">
+              {soldeData.total.toLocaleString('fr-FR')} €
             </div>
+
+            <div className="space-y-2">
+              {Array.isArray(soldeData.details) && soldeData.details.length > 0 ? (
+                soldeData.details.map((acc, idx) => (
+                  <p key={idx}>
+                    {acc.nom_compte}:{' '}
+                    <span className="font-semibold">
+                      {acc.solde.toLocaleString('fr-FR')} €
+                    </span>
+                  </p>
+                ))
+              ) : (
+                <p>Aucune donnée disponible</p>
+              )}
+            </div>
+
+            {/* Optional: Add form to edit balance */}
+            {/* <div className="mt-6">
+              <SoldeForm onSoldeUpdate={handleSoldeUpdate} />
+            </div> */}
           </div>
 
           {/* Flux de trésorerie */}
           <div className="bg-white rounded-2xl p-8 shadow-lg md:col-span-8">
-            <h2 className="text-xl font-bold text-[#083344] mb-6">Flux de Trésorerie (5 derniers mois)</h2>
-            <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={cashFlowData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="Debit" stroke="#083344" strokeWidth={2} />
-                <Line type="monotone" dataKey="Credit" stroke="#60A5FA" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
+            <h2 className="text-xl font-bold text-[#083344] mb-6">Flux de Trésorerie</h2>
+
+            {loading ? (
+              <p>Chargement du graphique...</p>
+            ) : error ? (
+              <p className="text-red-500">{error}</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={250}>
+                <LineChart data={cashFlowData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="Debit" stroke="#083344" strokeWidth={2} />
+                  <Line type="monotone" dataKey="Credit" stroke="#60A5FA" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 
@@ -87,7 +149,7 @@ const Tresorerie = () => {
                     <FaUser className="text-[#083344]" />
                     <span>{client.name}</span>
                   </div>
-                  <span>{client.amount} €</span>
+                  <span>{parseFloat(client.amount).toLocaleString('fr-FR')} €</span>
                 </div>
               ))}
             </div>
@@ -106,7 +168,7 @@ const Tresorerie = () => {
                     <FaUser className="text-[#083344]" />
                     <span>{fournisseur.name}</span>
                   </div>
-                  <span>{fournisseur.amount} €</span>
+                  <span>{parseFloat(fournisseur.amount).toLocaleString('fr-FR')} €</span>
                 </div>
               ))}
             </div>

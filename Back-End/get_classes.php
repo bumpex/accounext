@@ -6,12 +6,12 @@ header("Access-Control-Allow-Headers: Content-Type");
 
 include '../config/db.php';
 
-
 try {
-    $stmt = $pdo->query("SELECT nom AS name, solde AS amount FROM clients ORDER BY nom ASC");
-    $clients = $stmt->fetchAll();
-    echo json_encode($clients);
+    $stmt = $pdo->query("SELECT num_Class AS id, nom FROM classes ORDER BY num_Class ASC");
+    $classes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    echo json_encode($classes);
 } catch (PDOException $e) {
     http_response_code(500);
-    echo json_encode(['error' => 'Query failed: ' . $e->getMessage()]);
+    echo json_encode(['error' => 'Database error: ' . $e->getMessage()]);
 }
+?>

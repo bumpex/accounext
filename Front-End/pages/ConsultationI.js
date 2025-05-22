@@ -1,9 +1,9 @@
 import React from 'react';
 import { FaEye, FaFilter, FaSearch } from 'react-icons/fa';
 import { FaEquals } from 'react-icons/fa6';
-import Navbar from './navbar';
-import ConsultationNavbar from './ConsultationNavbar'; 
-import UserMenu from './UserMenu';
+import Navbar from '../components/navbar';
+import ConsultationNavbar from '../components/ConsultationNavbar'; 
+import UserMenu from '../components/UserMenu';
 
 const ConsultationI = () => {
   
