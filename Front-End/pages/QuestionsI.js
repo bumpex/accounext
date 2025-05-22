@@ -1,10 +1,21 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { FaArrowRight, FaArrowLeft, FaForward } from "react-icons/fa";
-import Navbar from "./navbar";
+import Navbar from "../components/navbar";
 
 const QuestionsI = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState({});
+
+  // Define the name question
+  const nameQuestion = useMemo(
+    () => ({
+      id: "name",
+      question: "Quelle est le nom de votre entreprise ?",
+      placeholder: "Entrez le nom de votre entreprise",
+      type: "text"
+    }),
+    []
+  );
 
   // Define the age question
   const ageQuestion = useMemo(
@@ -34,10 +45,10 @@ const QuestionsI = () => {
     return questions;
   }, [answers, ageQuestion.id]);
 
-  // Build the full questions array: [age question, profit questions]
+  // Build the full questions array: [name question, age question, profit questions]
   const questions = useMemo(
-    () => [ageQuestion, ...profitQuestions],
-    [ageQuestion, profitQuestions]
+    () => [nameQuestion, ageQuestion, ...profitQuestions],
+    [nameQuestion, ageQuestion, profitQuestions]
   );
 
   // Clear profit answers whenever the age changes
@@ -59,11 +70,21 @@ const QuestionsI = () => {
     if (currentQuestion >= questions.length) {
       setCurrentQuestion(questions.length - 1);
     }
-  }, [questions.length]);
+  }, [questions.length, currentQuestion]);
 
   // Handle next button
   const handleNext = () => {
-    if (questions[currentQuestion].id === ageQuestion.id) {
+    const currentId = questions[currentQuestion].id;
+
+    if (currentId === "name") {
+      const name = answers["name"];
+      if (!name || name.trim() === "") {
+        alert("Veuillez entrer le nom de votre entreprise.");
+        return;
+      }
+    }
+
+    if (currentId === ageQuestion.id) {
       const age = answers[ageQuestion.id];
       if (!age || isNaN(age) || age <= 0) {
         alert("Veuillez entrer un âge valide pour l'entreprise.");
@@ -99,6 +120,44 @@ const QuestionsI = () => {
       [questions[currentQuestion].id]: value
     }));
   };
+
+
+  const handleSubmit = async () => {
+  const name = answers["name"];
+  const age = parseInt(answers[ageQuestion.id], 10);
+
+  // Gather profits by year
+  const profits = {};
+  for (let i = 1; i <= age; i++) {
+    const profitValue = parseFloat(answers[`profit-${i}`]);
+    if (!isNaN(profitValue)) {
+      profits[i] = profitValue;
+    }
+  }
+
+  // Prepare payload
+  const payload = { name, age, profits };
+
+  try {
+    const res = await fetch("http://localhost:8000/entreprise.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const result = await res.json();
+
+    if (result.success) {
+      alert("Données sauvegardées avec succès !");
+      // Optionally reset form or redirect
+    } else {
+      alert("Erreur lors de la sauvegarde des données.");
+    }
+  } catch (error) {
+    alert("Erreur réseau ou serveur.");
+    console.error(error);
+  }
+};
+
 
   return (
     <div className="flex min-h-screen bg-[#f2f1ec]">
@@ -168,12 +227,21 @@ const QuestionsI = () => {
                 </button>
 
                 <button
-                  onClick={handleNext}
+                  onClick={() => {
+                    const isLastQuestion = currentQuestion === questions.length - 1;
+
+                    if (isLastQuestion) {
+                      handleSubmit();
+                    } else {
+                      handleNext();
+                    }
+                  }}
                   className="flex items-center gap-2 px-6 py-3 bg-[#003c3c] text-white rounded-lg font-medium hover:bg-[#003c3c]/90 transition-all duration-300"
                 >
-                  Suivant
+                  {currentQuestion === questions.length - 1 ? "Terminer" : "Suivant"}
                   <FaArrowRight />
                 </button>
+
               </div>
             </div>
           </div>

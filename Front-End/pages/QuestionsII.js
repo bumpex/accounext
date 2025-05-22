@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { FaArrowRight, FaArrowLeft, FaForward } from "react-icons/fa";
-import Navbar from './navbar';
+import Navbar from '../components/navbar';
 
 const QuestionsComptes = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -9,24 +9,28 @@ const QuestionsComptes = () => {
   const questions = [
     {
       id: 1,
+      key: "numero_compte",
       question: "N° du compte",
       placeholder: "Entrez le numéro du compte",
       type: "text"
     },
     {
       id: 2,
+      key: "nom_compte",
       question: "Nom du compte",
       placeholder: "Entrez le nom du compte",
       type: "text"
     },
     {
       id: 3,
+      key: "montant_debit",
       question: "Montant Débit",
       placeholder: "Entrez le montant du débit",
       type: "number"
     },
     {
       id: 4,
+      key: "montant_credit",
       question: "Montant Crédit",
       placeholder: "Entrez le montant du crédit",
       type: "number"
@@ -36,6 +40,8 @@ const QuestionsComptes = () => {
   const handleNext = () => {
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(prev => prev + 1);
+    } else {
+      submitData();
     }
   };
 
@@ -52,10 +58,38 @@ const QuestionsComptes = () => {
   };
 
   const handleAnswerChange = (e) => {
+    const key = questions[currentQuestion].key;
     setAnswers(prev => ({
       ...prev,
-      [questions[currentQuestion].id]: e.target.value
+      [key]: e.target.value
     }));
+  };
+
+  const submitData = async () => {
+    try {
+      const response = await fetch("http://localhost:8000/comptes.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          numero_compte: answers.numero_compte || "",
+          nom_compte: answers.nom_compte || "",
+          montant_debit: parseFloat(answers.montant_debit) || 0,
+          montant_credit: parseFloat(answers.montant_credit) || 0
+        }),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        alert("Compte enregistré avec succès !");
+        setAnswers({});
+        setCurrentQuestion(0);
+      } else {
+        alert("Erreur: " + result.message);
+      }
+    } catch (error) {
+      alert("Erreur réseau ou serveur.");
+      console.error(error);
+    }
   };
 
   return (
@@ -70,7 +104,7 @@ const QuestionsComptes = () => {
               <span className="text-[#083344]">{Math.round(((currentQuestion + 1) / questions.length) * 100)}%</span>
             </div>
             <div className="h-2 bg-[#083344]/10 rounded-full">
-              <div 
+              <div
                 className="h-full bg-[#083344] rounded-full transition-all duration-500"
                 style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
               ></div>
@@ -82,11 +116,11 @@ const QuestionsComptes = () => {
             <h2 className="text-2xl font-bold text-[#083344] mb-6">
               {questions[currentQuestion].question}
             </h2>
-            
+
             <div className="mb-8">
               <input
                 type={questions[currentQuestion].type}
-                value={answers[questions[currentQuestion].id] || ''}
+                value={answers[questions[currentQuestion].key] || ''}
                 onChange={handleAnswerChange}
                 placeholder={questions[currentQuestion].placeholder}
                 className="w-full px-4 py-3 bg-[#f2f1ec] border border-[#083344]/20 rounded-lg text-[#083344] placeholder-[#083344]/50 focus:outline-none focus:ring-2 focus:ring-[#083344] focus:border-transparent transition-all duration-300"
@@ -99,8 +133,8 @@ const QuestionsComptes = () => {
                 onClick={handlePrevious}
                 disabled={currentQuestion === 0}
                 className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-300 ${
-                  currentQuestion === 0 
-                    ? 'bg-gray-300 cursor-not-allowed text-gray-500' 
+                  currentQuestion === 0
+                    ? 'bg-gray-300 cursor-not-allowed text-gray-500'
                     : 'bg-[#083344] text-white hover:bg-[#083344]/90'
                 }`}
               >
@@ -116,12 +150,12 @@ const QuestionsComptes = () => {
                   <FaForward className="inline-block mr-2" />
                   Passer
                 </button>
-                
+
                 <button
                   onClick={handleNext}
                   className="flex items-center gap-2 px-6 py-3 bg-[#083344] text-white rounded-lg font-medium hover:bg-[#083344]/90 transition-all duration-300"
                 >
-                  Suivant
+                  {currentQuestion === questions.length - 1 ? "Terminer" : "Suivant"}
                   <FaArrowRight />
                 </button>
               </div>
