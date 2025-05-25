@@ -79,7 +79,7 @@ const ConsultationII = () => {
               <select
                 value={selectedClass}
                 onChange={(e) => setSelectedClass(e.target.value)}
-                className="absolute left-0 mt-2 w-full bg-white border border-gray-300 rounded-md shadow-lg p-2 z-10"
+                className="absolute left-0 w-full mb-6 bg-[#002c3c] text-white border border-gray-300 rounded-md shadow-lg p-2 z-10 hidden group-hover:block"
               >
                 <option value="">Toutes les classes</option>
                 {classes.map((cls) => (
@@ -108,12 +108,12 @@ const ConsultationII = () => {
           {/* Table */}
           <div className="border border-[#083344] rounded-xl overflow-x-auto mb-14 shadow-lg">
             <table className="w-full text-left border-collapse">
-              <thead className="bg-[#08334443] text-[#083344]">
+              <thead className="bg-gray-200 text-gray-700">
                 <tr>
-                  <th className="px-4 py-2 text-center border border-[#f2f1ec]">N° du Compte</th>
-                  <th className="px-4 py-2 text-center border border-[#f2f1ec]">Nom du Compte</th>
-                  <th className="px-4 py-2 text-center border border-[#f2f1ec]">Débit</th>
-                  <th className="px-4 py-2 text-center border border-[#f2f1ec]">Crédit</th>
+                  <th className="px-6 py-4 uppercase border border-[#f2f1ec]">N° du Compte</th>
+                  <th className="px-6 py-4 uppercase border border-[#f2f1ec]">Nom du Compte</th>
+                  <th className="px-6 py-4 uppercase border border-[#f2f1ec]">Débit</th>
+                  <th className="px-6 py-4 uppercase border border-[#f2f1ec]">Crédit</th>
                 </tr>
               </thead>
               <tbody>
