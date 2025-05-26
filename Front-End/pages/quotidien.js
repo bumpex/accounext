@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import Navbar from "../components/navbar";
+import UserMenu from "../components/UserMenu";
+
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function Quotidien() {
   const [formData, setFormData] = useState({
-    date: new Date().toISOString().split('T')[0],
+    date: '',
     libelle: '',
     justification: null,
     showJustification: true,
@@ -234,6 +236,7 @@ export default function Quotidien() {
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Navbar />
+      <UserMenu/>
       <ToastContainer position="top-right" autoClose={5000} />
       
       <div className="flex-1 p-6 lg:p-8 ml-0  transition-all duration-300">
@@ -260,11 +263,13 @@ export default function Quotidien() {
                       id="date"
                       type="date"
                       name="date"
-                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300 bg-gray-100 cursor-not-allowed"
+                      className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                       value={formData.date}
-                      readOnly
+                      onChange={handleInputChange}
+                      required
+                      
                     />
-                    <p className="mt-1 text-xs text-gray-500">Date automatique (non modifiable)</p>
+                    
                   </div>
                   
                   <div>
