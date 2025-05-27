@@ -1,28 +1,47 @@
 import React, { useEffect, useState } from 'react';
-import { FaEye } from 'react-icons/fa';
+import { FaEye, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import Navbar from '../components/navbar';
 import ConsultationNavbar from '../components/ConsultationNavbar';
 import UserMenu from '../components/UserMenu';
+import LoadingScreen from '../components/loading';
 
 const ConsultationI = () => {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [minimumLoadTimePassed, setMinimumLoadTimePassed] = useState(false);
   const itemsPerPage = 5;
 
   useEffect(() => {
-    fetch('http://localhost:8000/entries.php')
-      .then(res => res.json())
-      .then(json => {
+    // Set minimum load time of 3 seconds
+    const timer = setTimeout(() => {
+      setMinimumLoadTimePassed(true);
+    }, 2000);
+
+    const fetchEntries = async () => {
+      try {
+        const response = await fetch('http://localhost/accounext/entries.php');
+        const json = await response.json();
+        
         if (json.success) {
           setEntries(json.data);
         } else {
           console.error(json.error);
         }
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
+      } catch (error) {
+        console.error('Fetch error:', error);
+      } finally {
+        // Only set loading to false after both the data is loaded AND 3 seconds have passed
+        if (minimumLoadTimePassed) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchEntries();
+
+    return () => clearTimeout(timer);
+  }, [minimumLoadTimePassed]);
 
   // Group entries by journal_entry_id
   const groupedEntries = entries.reduce((acc, entry) => {
@@ -34,123 +53,175 @@ const ConsultationI = () => {
 
   const groupedArray = Object.entries(groupedEntries);
   const totalPages = Math.ceil(groupedArray.length / itemsPerPage);
-
   const paginatedGroups = groupedArray.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
-  const goToPrevious = () => {
-    if (currentPage > 1) setCurrentPage(currentPage - 1);
-  };
+  const goToPrevious = () => currentPage > 1 && setCurrentPage(currentPage - 1);
+  const goToNext = () => currentPage < totalPages && setCurrentPage(currentPage + 1);
 
-  const goToNext = () => {
-    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
-  };
+  // Only show content when both data is loaded AND 3 seconds have passed
+  const showContent = !loading && minimumLoadTimePassed;
 
-  if (loading) return <div className="p-8 text-center">Chargement…</div>;
+  if (!showContent) {
+    return (
+      <div className="flex min-h-screen bg-[#f2f1ec]">
+        <Navbar />
+        <UserMenu />
+        <LoadingScreen/>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-[#f2f1ec]">
       <Navbar />
       <UserMenu />
       <div className="flex-1 overflow-y-auto">
-        <div className="p-8">
-          <h1 className="text-3xl font-bold text-[#083344] mb-2 text-center">Consultation</h1>
-          <div className="w-1/2 h-0.5 bg-[#083344] mx-auto mb-10" />
-          <ConsultationNavbar />
+        <div className="p-6 md:p-8">
+          <div className="max-w-7xl mx-auto">
+            {/* Header Section */}
+            <div className="text-center mb-10">
+              <h1 className="text-3xl font-bold text-[#083344] mb-2">Consultation des Écritures</h1>
+              <div className="w-1/2 h-1 bg-[#083344] bg-opacity-30 mx-auto rounded-full"></div>
+            </div>
+            
+            <ConsultationNavbar />
+            
+            {/* Main Content */}
+            <div className="mt-8 space-y-8">
+              {paginatedGroups.length === 0 ? (
+                <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-200">
+                  <p className="text-gray-500 text-lg">Aucune écriture trouvée</p>
+                </div>
+              ) : (
+                paginatedGroups.map(([groupId, records]) => {
+                  const firstRecord = records[0];
+                  const totalDebit = records
+                    .filter(r => r.type === 'debit')
+                    .reduce((sum, r) => sum + parseFloat(r.montant), 0);
+                  const totalCredit = records
+                    .filter(r => r.type === 'credit')
+                    .reduce((sum, r) => sum + parseFloat(r.montant), 0);
+                  const isBalanced = totalDebit.toFixed(2) === totalCredit.toFixed(2);
 
-          {paginatedGroups.map(([groupId, records]) => {
-            const first = records[0];
-            return (
-              <div key={groupId} className="border border-[#083344] mt-10 rounded-xl overflow-x-auto shadow-lg mb-10">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr>
-                      <th className="px-4 py-2 bg-gray-200 text-gray-700 text-center border border-[#f2f1ec]">
-                        {first.libelle || 'Libellé'}
-                      </th>
-                      <th colSpan="2" className="px-4 py-3 text-center border border-[#083344] bg-gray-200 text-gray-700">
-                        {first.compteNom || 'Nom du compte'}
-                      </th>
-                      <th colSpan="2" className="px-4 py-3 text-center border border-[#083344] bg-gray-200 text-gray-700">
-                        {first.justification ? (
+                  return (
+                    <div key={groupId} className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
+                      {/* Journal Entry Header */}
+                      <div className="bg-[#083344] text-white p-4 flex justify-between items-center">
+                        <div>
+                          <h3 className="font-semibold">{firstRecord.libelle || 'Écriture sans libellé'}</h3>
+                          <p className="text-sm opacity-80">{firstRecord.date_operation || 'Date inconnue'}</p>
+                        </div>
+                        {firstRecord.justification ? (
                           <a
-                            href={`http://localhost/${first.justification}`}
+                            href={`http://localhost/accounext/${firstRecord.justification}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-full inline-flex items-center justify-center text-white bg-[#083344] px-4 py-2 rounded-md hover:bg-[#083344e1] transition-colors"
+                            className="flex items-center gap-2 bg-white text-[#083344] px-3 py-1.5 rounded-md text-sm font-medium hover:bg-gray-100 transition-colors"
                           >
-                            <FaEye className="mr-2" />
-                            Afficher Justification
+                            <FaEye className="text-[#083344]" />
+                            Voir justification
                           </a>
                         ) : (
-                          <span className="text-sm text-gray-500">Aucune justification</span>
+                          <span className="text-sm opacity-80">Aucune justification</span>
                         )}
-                      </th>
-                    </tr>
-                    <tr>
-                      <th className="px-4 py-2 bg-gray-200 text-gray-700 text-center border border-[#f2f1ec]">
-                        Date
-                      </th>
-                      <th colSpan="4" className="px-4 py-2 text-center border border-[#083344] bg-gray-200 text-gray-700">
-                        {first.date_operation || 'DD / MM / YYYY'}
-                      </th>
-                    </tr>
-                    <tr>
-                      <th rowSpan="2" className="px-4 py-2 bg-gray-200 text-gray-700 text-center border border-[#f2f1ec]">
-                        N° du compte
-                      </th>
-                      <th rowSpan="2" className="px-4 py-2 bg-gray-200 text-gray-700 text-center border border-[#f2f1ec]">
-                        Nom du compte
-                      </th>
-                      <th colSpan="2" className="px-4 py-2 bg-gray-200 text-gray-700 text-center border border-[#f2f1ec]">
-                        Montant
-                      </th>
-                    </tr>
-                    <tr>
-                      <th className="px-4 py-2 bg-gray-200 text-gray-700 text-center border border-[#f2f1ec]">Débit</th>
-                      <th className="px-4 py-2 bg-gray-200 text-gray-700 text-center border border-[#f2f1ec]">Crédit</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {records.map((entry, i) => (
-                      <tr key={i} className="bg-white border-t border-[#083344] hover:bg-[#f9fafb]">
-                        <td className="px-4 py-3 border-[#083344]">{entry.compteNum}</td>
-                        <td className="px-4 py-3 border-[#083344]">{entry.compteNom}</td>
-                        <td className="px-4 py-3 border-[#083344] text-center">
-                          {entry.type === 'debit' ? `${entry.montant} MAD` : ''}
-                        </td>
-                        <td className="px-4 py-3 border-[#083344] text-center">
-                          {entry.type === 'credit' ? `${entry.montant} MAD` : ''}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            );
-          })}
+                      </div>
 
-          {/* Pagination Controls */}
-          <div className="flex justify-center mt-6 space-x-4">
-            <button
-              onClick={goToPrevious}
-              disabled={currentPage === 1}
-              className="px-4 py-2 bg-[#083344] text-white rounded disabled:opacity-50"
-            >
-              Précédent
-            </button>
-            <span className="self-center text-[#083344] font-medium">
-              Page {currentPage} sur {totalPages}
-            </span>
-            <button
-              onClick={goToNext}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 bg-[#083344] text-white rounded disabled:opacity-50"
-            >
-              Suivant
-            </button>
+                      {/* Entries Table */}
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                N° Compte
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Nom Compte
+                              </th>
+                              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Débit (MAD)
+                              </th>
+                              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Crédit (MAD)
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {records.map((entry, index) => (
+                              <tr key={index} className="hover:bg-gray-50 transition-colors">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                  {entry.compteNum}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {entry.compteNom}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-mono">
+                                  {entry.type === 'debit' ? parseFloat(entry.montant).toFixed(2) : '-'}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-mono">
+                                  {entry.type === 'credit' ? parseFloat(entry.montant).toFixed(2) : '-'}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                          {/* Totals Footer */}
+                          <tfoot className="bg-gray-50">
+                            <tr>
+                              <td colSpan="2" className="px-6 py-3 text-sm font-medium text-gray-900 text-right">
+                                Totaux:
+                              </td>
+                              <td className="px-6 py-3 text-sm font-mono text-right">
+                                {totalDebit.toFixed(2)}
+                              </td>
+                              <td className="px-6 py-3 text-sm font-mono text-right">
+                                {totalCredit.toFixed(2)}
+                              </td>
+                            </tr>
+                            <tr className={isBalanced ? 'bg-green-50' : 'bg-red-50'}>
+                              <td colSpan="2" className="px-6 py-3 text-sm font-medium text-gray-900 text-right">
+                                Équilibre:
+                              </td>
+                              <td colSpan="2" className={`px-6 py-3 text-sm font-mono text-center font-medium ${
+                                isBalanced ? 'text-green-600' : 'text-red-600'
+                              }`}>
+                                {isBalanced ? 'Équilibré' : 'Non équilibré'}
+                              </td>
+                            </tr>
+                          </tfoot>
+                        </table>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="mt-8 flex items-center justify-between">
+                <button
+                  onClick={goToPrevious}
+                  disabled={currentPage === 1}
+                  className="flex items-center gap-2 px-4 py-2 border border-[#083344] rounded-md text-[#083344] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#083344] hover:text-white transition-colors"
+                >
+                  <FaChevronLeft />
+                  Précédent
+                </button>
+                <span className="text-sm text-gray-600">
+                  Page <span className="font-medium">{currentPage}</span> sur <span className="font-medium">{totalPages}</span>
+                </span>
+                <button
+                  onClick={goToNext}
+                  disabled={currentPage === totalPages}
+                  className="flex items-center gap-2 px-4 py-2 border border-[#083344] rounded-md text-[#083344] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#083344] hover:text-white transition-colors"
+                >
+                  Suivant
+                  <FaChevronRight />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
