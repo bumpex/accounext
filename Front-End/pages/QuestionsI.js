@@ -1,22 +1,30 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { FaArrowRight, FaArrowLeft, FaForward } from "react-icons/fa";
+import { FaArrowRight, FaArrowLeft, FaForward, FaBuilding, FaCalendarAlt, FaChartLine } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/navbar";
 import UserMenu from "../components/UserMenu";
+import { motion } from "framer-motion";
 
 const QuestionsI = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState({});
-  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-
+  const [currentYear] = useState((new Date().getFullYear() - 1));
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
   const nameQuestion = useMemo(
     () => ({
       id: "name",
       question: "Quel est le nom de votre entreprise ?",
-      placeholder: "Entrez le nom de l'entreprise",
+      placeholder: "Ex: Entreprise XYZ",
       type: "text",
+      icon: <FaBuilding className="text-[#003c3c] text-xl" />,
+      validation: (value) => {
+        if (!value) return "Ce champ est requis";
+        if (value.length < 2) return "Le nom doit contenir au moins 2 caractères";
+        return null;
+      }
     }),
     []
   );
@@ -24,9 +32,18 @@ const QuestionsI = () => {
   const ageQuestion = useMemo(
     () => ({
       id: "age",
-      question: "Quel âge a votre entreprise ?",
-      placeholder: "Entrez l'âge de votre entreprise en années",
+      question: "Depuis combien d'années votre entreprise existe-t-elle ?",
+      placeholder: "Nombre d'années",
       type: "number",
+      icon: <FaCalendarAlt className="text-[#003c3c] text-xl" />,
+      validation: (value) => {
+        if (!value) return "Ce champ est requis";
+        const num = parseInt(value, 10);
+        if (isNaN(num)) return "Veuillez entrer un nombre valide";
+        if (num <= 0) return "L'âge doit être supérieur à 0";
+        if (num > 100) return "L'âge doit être inférieur à 100 ans";
+        return null;
+      }
     }),
     []
   );
@@ -35,17 +52,22 @@ const QuestionsI = () => {
     const age = parseInt(answers[ageQuestion.id], 10);
     if (!age || isNaN(age) || age <= 0) return [];
 
-    const questions = [];
-    for (let i = 1; i <= age; i++) {
-      const year = currentYear - (age - i);
-      questions.push({
+    return Array.from({ length: age }, (_, i) => {
+      const year = currentYear - (age - i - 1);
+      return {
         id: `profit-${i}`,
-        question: `Quels sont les bénéfices de votre entreprise en ${year} ?`,
-        placeholder: "Entrez le montant des bénéfices",
+        question: `Quel était le bénéfice net en ${year} ?`,
+        placeholder: "Montant en €",
         type: "number",
-      });
-    }
-    return questions;
+        icon: <FaChartLine className="text-[#003c3c] text-xl" />,
+        year,
+        validation: (value) => {
+          if (!value) return "Ce champ est requis";
+          if (isNaN(parseFloat(value))) return "Veuillez entrer un nombre valide";
+          return null;
+        }
+      };
+    });
   }, [answers, ageQuestion.id, currentYear]);
 
   const questions = useMemo(
@@ -54,220 +76,247 @@ const QuestionsI = () => {
   );
 
   useEffect(() => {
-    setAnswers((prev) => {
-      const newAnswers = { ...prev };
-      Object.keys(newAnswers).forEach((key) => {
-        if (key.startsWith("profit-")) {
-          delete newAnswers[key];
-        }
+    // Reset profit questions when age changes
+    if (answers[ageQuestion.id]) {
+      setAnswers(prev => {
+        const newAnswers = { ...prev };
+        Object.keys(newAnswers).forEach(key => {
+          if (key.startsWith("profit-")) delete newAnswers[key];
+        });
+        return newAnswers;
       });
-      return newAnswers;
-    });
+    }
   }, [answers[ageQuestion.id]]);
 
   useEffect(() => {
-    if (questions.length === 0) return;
-    if (currentQuestion >= questions.length) {
+    if (questions.length > 0 && currentQuestion >= questions.length) {
       setCurrentQuestion(questions.length - 1);
     }
   }, [questions.length, currentQuestion]);
 
+  const validateCurrentQuestion = () => {
+    const currentQ = questions[currentQuestion];
+    if (!currentQ?.validation) return true;
+    
+    const error = currentQ.validation(answers[currentQ.id]);
+    if (error) {
+      setErrors(prev => ({ ...prev, [currentQ.id]: error }));
+      return false;
+    }
+    setErrors(prev => ({ ...prev, [currentQ.id]: undefined }));
+    return true;
+  };
+
   const handleAnswerChange = (e) => {
-    const value = e.target.value;
-    setAnswers((prev) => ({
+    const { value } = e.target;
+    setAnswers(prev => ({
       ...prev,
       [questions[currentQuestion].id]: value,
     }));
+    
+    // Clear error when typing
+    if (errors[questions[currentQuestion].id]) {
+      setErrors(prev => ({ ...prev, [questions[currentQuestion].id]: undefined }));
+    }
   };
 
   const handlePrevious = () => {
     if (currentQuestion > 0) {
-      setCurrentQuestion((prev) => prev - 1);
+      setCurrentQuestion(prev => prev - 1);
     }
   };
 
   const handleSkip = () => {
-    // Don't allow skip for name or age questions
-    if (
-      questions[currentQuestion]?.id === nameQuestion.id ||
-      questions[currentQuestion]?.id === ageQuestion.id
-    ) {
-      return;
-    }
     if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion((prev) => prev + 1);
+      setCurrentQuestion(prev => prev + 1);
     }
   };
 
   const handleNext = async () => {
-    const currentId = questions[currentQuestion].id;
-    const value = answers[currentId];
-
-    if (
-      currentId === ageQuestion.id &&
-      (!value || isNaN(value) || value <= 0)
-    ) {
-      alert("Veuillez entrer un âge valide pour l'entreprise.");
-      return;
-    }
-
-    if (!value) {
-      alert("Veuillez remplir ce champ avant de continuer.");
-      return;
-    }
+    if (!validateCurrentQuestion()) return;
 
     if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion((prev) => prev + 1);
+      setCurrentQuestion(prev => prev + 1);
     } else {
-      // Final step — Submit data
-      try {
-        const profitData = {};
-        for (const key in answers) {
-          if (key.startsWith("profit-")) {
-            const index = parseInt(key.split("-")[1], 10);
-            const age = parseInt(answers[ageQuestion.id], 10);
-            const year = currentYear - age + index;
-            profitData[year] = parseFloat(answers[key]);
-          }
-        }
-
-        const response = await fetch("http://localhost:8000/entreprise.php", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            name: answers[nameQuestion.id],
-            age: parseInt(answers[ageQuestion.id], 10),
-            profits: profitData
-          })
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-          try {
-            const user = JSON.parse(localStorage.getItem("user"));
-
-            // Mark questionnaire I as completed
-            await fetch("http://localhost:8000/mark-completed.php", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json"
-              },
-              body: JSON.stringify({ userId: user.id })
-            });
-
-            navigate("/questionsII");
-          } catch (err) {
-            console.error("Failed to mark questionnaire as completed:", err);
-          }
-        } else {
-          alert("Erreur lors de l'enregistrement : " + data.message);
-        }
-      } catch (error) {
-        console.error("Une erreur s'est produite lors de la soumission:", error);
-        alert("Une erreur s'est produite lors de la soumission.");
-      }
+      await submitData();
     }
   };
 
+  const submitData = async () => {
+    setIsSubmitting(true);
+    try {
+      // Extract profit data from answers
+      const profitData = profitQuestions.map((q, i) => ({
+        year: q.year,
+        profit: parseFloat(answers[`profit-${i}`]) || 0
+      }));
+
+      const response = await fetch("http://localhost:8000/entreprise.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
+        body: JSON.stringify({
+          name: answers[nameQuestion.id],
+          age: parseInt(answers[ageQuestion.id], 10),
+          profits: profitData
+        }),
+        credentials: "include"
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Request failed');
+      }
+
+      const data = await response.json();
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Submission error:", error);
+      alert(`Error: ${error.message || 'Failed to submit data'}`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const progressPercentage = questions.length > 0 
+    ? Math.round(((currentQuestion + 1) / questions.length) * 100)
+    : 0;
+
   return (
-    <div className="flex min-h-screen bg-[#f2f1ec]">
+    <div className="flex min-h-screen bg-gradient-to-br from-[#f2f1ec] to-[#e0e0d8]">
       <Navbar />
       <UserMenu className="mb-10" />
-      <div className="flex-1 p-8 overflow-y-auto mt-10">
-        <div className="max-w-2xl mx-auto">
-          <div className="mb-8">
-            <div className="flex justify-between mb-2">
-              <span className="text-[#003c3c]">
-                Question {currentQuestion + 1} sur {questions.length}
-              </span>
-              <span className="text-[#003c3c]">
-                {Math.round(((currentQuestion + 1) / questions.length) * 100)}%
+      
+      <div className="flex-1 p-4 md:p-8 overflow-y-auto mt-10">
+        <div className="max-w-3xl mx-auto">
+          {/* Progress Section */}
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8 bg-white p-6 rounded-xl shadow-md"
+          >
+            <div className="flex justify-between items-center mb-3">
+              <h2 className="text-lg font-semibold text-[#003c3c]">
+                Questionnaire Entreprise
+              </h2>
+              <span className="text-sm font-medium text-[#003c3c]">
+                {progressPercentage}% complété
               </span>
             </div>
-            <div className="h-2 bg-[#003c3c]/10 rounded-full">
-              <div
-                className="h-full bg-[#003c3c] rounded-full transition-all duration-500"
-                style={{
-                  width: `${((currentQuestion + 1) / questions.length) * 100}%`,
-                }}
-              ></div>
-            </div>
-          </div>
-
-          <div className="bg-white p-8 rounded-2xl shadow-lg transform transition-all duration-500 hover:scale-[1.02]">
-            <h2 className="text-2xl font-bold text-[#003c3c] mb-6">
-              {questions[currentQuestion]?.question}
-            </h2>
-
-            <div className="mb-8">
-              <input
-                type={questions[currentQuestion]?.type}
-                value={answers[questions[currentQuestion]?.id] || ""}
-                onChange={handleAnswerChange}
-                placeholder={questions[currentQuestion]?.placeholder}
-                className="w-full px-4 py-3 bg-[#f2f1ec] border border-[#003c3c]/20 rounded-lg text-[#003c3c] placeholder-[#003c3c]/50 focus:outline-none focus:ring-2 focus:ring-[#003c3c] focus:border-transparent transition-all duration-300"
+            
+            <div className="h-3 bg-[#003c3c]/10 rounded-full overflow-hidden">
+              <motion.div
+                className="h-full bg-gradient-to-r from-[#006666] to-[#003c3c] rounded-full"
+                initial={{ width: "0%" }}
+                animate={{ width: `${progressPercentage}%` }}
+                transition={{ duration: 0.5 }}
               />
             </div>
+            
+            <div className="mt-2 text-right text-sm text-[#003c3c]/70">
+              Question {currentQuestion + 1} sur {questions.length}
+            </div>
+          </motion.div>
 
-            <div className="flex justify-between items-center">
-              <button
-                onClick={handlePrevious}
-                disabled={currentQuestion === 0}
-                className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-300 ${
-                  currentQuestion === 0
-                    ? "bg-gray-300 cursor-not-allowed text-gray-500"
-                    : "bg-[#003c3c] text-white hover:bg-[#003c3c]/90"
-                }`}
-              >
-                <FaArrowLeft />
-                Précédent
-              </button>
+          {/* Current Question */}
+          {questions.length > 0 && (
+            <motion.div
+              key={currentQuestion}
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -50 }}
+              transition={{ duration: 0.3 }}
+              className="bg-white p-6 md:p-8 rounded-2xl shadow-lg"
+            >
+              <div className="flex items-start gap-4 mb-6">
+                <div className="p-3 bg-[#003c3c]/10 rounded-full">
+                  {questions[currentQuestion].icon}
+                </div>
+                <div>
+                  <h2 className="text-xl md:text-2xl font-bold text-[#003c3c]">
+                    {questions[currentQuestion].question}
+                  </h2>
+                  {questions[currentQuestion].id.startsWith("profit-") && (
+                    <p className="text-sm text-[#003c3c]/70 mt-1">
+                      Année: {questions[currentQuestion].year}
+                    </p>
+                  )}
+                </div>
+              </div>
 
-              <div className="flex gap-4">
+              <div className="mb-6">
+                <input
+                  type={questions[currentQuestion].type}
+                  value={answers[questions[currentQuestion].id] || ""}
+                  onChange={handleAnswerChange}
+                  placeholder={questions[currentQuestion].placeholder}
+                  className={`w-full px-4 py-3 bg-[#f8f8f6] border rounded-lg text-[#003c3c] placeholder-[#003c3c]/50 focus:outline-none focus:ring-2 transition-all duration-300 ${
+                    errors[questions[currentQuestion].id] 
+                      ? "border-red-500 focus:ring-red-300" 
+                      : "border-[#003c3c]/20 focus:ring-[#003c3c]/50"
+                  }`}
+                />
+                {errors[questions[currentQuestion].id] && (
+                  <p className="mt-2 text-sm text-red-600">
+                    {errors[questions[currentQuestion].id]}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-col-reverse md:flex-row justify-between items-center gap-4">
                 <button
-                  onClick={handleSkip}
-                  disabled={
-                    questions[currentQuestion]?.id === nameQuestion.id ||
-                    questions[currentQuestion]?.id === ageQuestion.id
-                  }
-                  className={`px-6 py-3 rounded-lg font-medium transition-all duration-300 ${
-                    questions[currentQuestion]?.id === nameQuestion.id ||
-                    questions[currentQuestion]?.id === ageQuestion.id
-                      ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                      : "bg-gray-200 text-[#003c3c] hover:bg-gray-300"
+                  onClick={handlePrevious}
+                  disabled={currentQuestion === 0}
+                  className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-300 ${
+                    currentQuestion === 0
+                      ? "bg-gray-200 cursor-not-allowed text-gray-500"
+                      : "bg-[#003c3c] text-white hover:bg-[#005555]"
                   }`}
                 >
-                  <FaForward className="inline-block mr-2" />
-                  Passer
+                  <FaArrowLeft />
+                  Précédent
                 </button>
 
-                <button
-                  onClick={handleNext}
-                  className="flex items-center gap-2 px-6 py-3 bg-[#003c3c] text-white rounded-lg font-medium hover:bg-[#003c3c]/90 transition-all duration-300"
-                >
-                  Suivant
-                  <FaArrowRight />
-                </button>
+                <div className="flex gap-3 w-full md:w-auto">
+                  {currentQuestion < questions.length - 1 && (
+                    <button
+                      onClick={handleSkip}
+                      disabled={currentQuestion === 0}
+                      className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all ${
+                        currentQuestion === 0
+                          ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                          : "bg-amber-100 text-amber-800 hover:bg-amber-200"
+                      }`}
+                    >
+                      Passer <FaForward />
+                    </button>
+                  )}
+
+                  <button
+                    onClick={handleNext}
+                    disabled={isSubmitting}
+                    className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium text-white transition-all ${
+                      isSubmitting
+                        ? "bg-[#003c3c]/70 cursor-wait"
+                        : "bg-[#003c3c] hover:bg-[#005555]"
+                    }`}
+                  >
+                    {currentQuestion < questions.length - 1 ? (
+                      <>
+                        Suivant <FaArrowRight />
+                      </>
+                    ) : isSubmitting ? (
+                      "Envoi en cours..."
+                    ) : (
+                      "Terminer et soumettre"
+                    )}
+                  </button>
+                </div>
               </div>
-            </div>
-          </div>
-
-          {/* Input for Current Year */}
-          <div className="mt-12 text-center">
-            <label className="block text-[#003c3c] font-semibold mb-2">
-              Année actuelle pour les bénéfices :
-            </label>
-            <input
-              type="number"
-              value={currentYear}
-              onChange={(e) => setCurrentYear(parseInt(e.target.value, 10))}
-              className="w-40 px-4 py-2 border border-[#003c3c]/40 rounded-lg text-[#003c3c] text-center bg-[#f2f1ec] placeholder-[#003c3c]/50 focus:outline-none focus:ring-2 focus:ring-[#003c3c]"
-              placeholder="Année"
-            />
-          </div>
+            </motion.div>
+          )}
         </div>
       </div>
     </div>
