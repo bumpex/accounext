@@ -66,19 +66,16 @@ const Register = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#083344] to-[#0a4b63] flex flex-col">
-      {/* Logo */}
-      <div className="p-6">
+            <div className="p-6">
         <img src={AccountNextLogo} alt="Accounext Logo" className="h-12" />
       </div>
 
-      {/* Register Form */}
-      <div className="flex-1 flex items-center justify-center px-4 mb-12">
+            <div className="flex-1 flex items-center justify-center px-4 mb-12">
         <div className="bg-white/10 backdrop-blur-lg p-8 rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-500 hover:scale-[1.02]">
           <h2 className="text-3xl font-bold text-center mb-8 text-white">Create Account</h2>
 
           <form className="space-y-6" onSubmit={handleSubmit}>
-            {/* Full Name */}
-            <div className="space-y-2">
+                        <div className="space-y-2">
               <label htmlFor="name" className="block text-sm font-medium text-white/90">Full Name</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -97,8 +94,7 @@ const Register = () => {
               </div>
             </div>
 
-            {/* Email */}
-            <div className="space-y-2">
+                        <div className="space-y-2">
               <label htmlFor="email" className="block text-sm font-medium text-white/90">Email</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -117,8 +113,7 @@ const Register = () => {
               </div>
             </div>
 
-            {/* Password */}
-            <div className="space-y-2">
+                        <div className="space-y-2">
               <label htmlFor="password" className="block text-sm font-medium text-white/90">Password</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -144,8 +139,7 @@ const Register = () => {
               </div>
             </div>
 
-            {/* Confirm Password */}
-            <div className="space-y-2">
+                        <div className="space-y-2">
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-white/90">Confirm Password</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -171,8 +165,7 @@ const Register = () => {
               </div>
             </div>
 
-            {/* Terms & Conditions */}
-            <div className="flex items-center">
+                        <div className="flex items-center">
               <input
                 id="terms"
                 name="terms"
@@ -187,8 +180,7 @@ const Register = () => {
               </label>
             </div>
 
-            {/* Register Button */}
-            <button
+                        <button
               type="submit"
               className="w-full bg-blue-500 text-white py-3 rounded-lg font-medium hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition-all duration-300 transform hover:scale-[1.02]"
             >

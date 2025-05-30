@@ -3,15 +3,9 @@ header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *'); 
 header('Access-Control-Allow-Methods: POST');
 header('Access-Control-Allow-Headers: Content-Type');
-
-// Include DB connection
 require_once '../config/db.php';
-
-// Get JSON input
 $rawData = file_get_contents("php://input");
 $data = json_decode($rawData, true);
-
-// Validate input
 if (
     empty($data['full_name']) ||
     empty($data['email']) ||
@@ -26,7 +20,6 @@ $email = $data['email'];
 $password = password_hash($data['password'], PASSWORD_DEFAULT);
 
 try {
-    // Check if email already exists
     $stmt = $pdo->prepare("SELECT id FROM users WHERE Email = ?");
     $stmt->execute([$email]);
 
@@ -34,8 +27,6 @@ try {
         echo json_encode(["success" => false, "error" => "Email already registered"]);
         exit;
     }
-
-    // Insert into database
     $stmt = $pdo->prepare("INSERT INTO users (Full_Name, Email, Password) VALUES (?, ?, ?)");
     $stmt->execute([$fullName, $email, $password]);
 

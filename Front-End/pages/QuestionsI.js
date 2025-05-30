@@ -76,7 +76,6 @@ const QuestionsI = () => {
   );
 
   useEffect(() => {
-    // Reset profit questions when age changes
     if (answers[ageQuestion.id]) {
       setAnswers(prev => {
         const newAnswers = { ...prev };
@@ -113,8 +112,6 @@ const QuestionsI = () => {
       ...prev,
       [questions[currentQuestion].id]: value,
     }));
-    
-    // Clear error when typing
     if (errors[questions[currentQuestion].id]) {
       setErrors(prev => ({ ...prev, [questions[currentQuestion].id]: undefined }));
     }
@@ -145,7 +142,6 @@ const QuestionsI = () => {
   const submitData = async () => {
     setIsSubmitting(true);
     try {
-      // Extract profit data from answers
       const profitData = profitQuestions.map((q, i) => ({
         year: q.year,
         profit: parseFloat(answers[`profit-${i}`]) || 0
@@ -191,8 +187,7 @@ const QuestionsI = () => {
       
       <div className="flex-1 p-4 md:p-8 overflow-y-auto mt-10">
         <div className="max-w-3xl mx-auto">
-          {/* Progress Section */}
-          <motion.div 
+                    <motion.div 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             className="mb-8 bg-white p-6 rounded-xl shadow-md"
@@ -220,8 +215,7 @@ const QuestionsI = () => {
             </div>
           </motion.div>
 
-          {/* Current Question */}
-          {questions.length > 0 && (
+                    {questions.length > 0 && (
             <motion.div
               key={currentQuestion}
               initial={{ opacity: 0, x: 50 }}

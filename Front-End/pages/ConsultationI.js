@@ -13,7 +13,6 @@ const ConsultationI = () => {
   const itemsPerPage = 5;
 
   useEffect(() => {
-    // Set minimum load time of 3 seconds
     const timer = setTimeout(() => {
       setMinimumLoadTimePassed(true);
     }, 2000);
@@ -31,7 +30,6 @@ const ConsultationI = () => {
       } catch (error) {
         console.error('Fetch error:', error);
       } finally {
-        // Only set loading to false after both the data is loaded AND 3 seconds have passed
         if (minimumLoadTimePassed) {
           setLoading(false);
         }
@@ -42,8 +40,6 @@ const ConsultationI = () => {
 
     return () => clearTimeout(timer);
   }, [minimumLoadTimePassed]);
-
-  // Group entries by journal_entry_id
   const groupedEntries = entries.reduce((acc, entry) => {
     const key = entry.journal_entry_id || `manual-${entry.id}`;
     if (!acc[key]) acc[key] = [];
@@ -60,8 +56,6 @@ const ConsultationI = () => {
 
   const goToPrevious = () => currentPage > 1 && setCurrentPage(currentPage - 1);
   const goToNext = () => currentPage < totalPages && setCurrentPage(currentPage + 1);
-
-  // Only show content when both data is loaded AND 3 seconds have passed
   const showContent = !loading && minimumLoadTimePassed;
 
   if (!showContent) {
@@ -81,16 +75,14 @@ const ConsultationI = () => {
       <div className="flex-1 overflow-y-auto">
         <div className="p-6 md:p-8">
           <div className="max-w-7xl mx-auto">
-            {/* Header Section */}
-            <div className="text-center mb-10">
+                        <div className="text-center mb-10">
               <h1 className="text-3xl font-bold text-[#083344] mb-2">Consultation des Écritures</h1>
               <div className="w-1/2 h-1 bg-[#083344] bg-opacity-30 mx-auto rounded-full"></div>
             </div>
             
             <ConsultationNavbar />
             
-            {/* Main Content */}
-            <div className="mt-8 space-y-8">
+                        <div className="mt-8 space-y-8">
               {paginatedGroups.length === 0 ? (
                 <div className="text-center py-12 bg-white rounded-xl shadow-sm border border-gray-200">
                   <p className="text-gray-500 text-lg">Aucune écriture trouvée</p>
@@ -108,8 +100,7 @@ const ConsultationI = () => {
 
                   return (
                     <div key={groupId} className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
-                      {/* Journal Entry Header */}
-                      <div className="bg-[#083344] text-white p-4 flex justify-between items-center">
+                                            <div className="bg-[#083344] text-white p-4 flex justify-between items-center">
                         <div>
                           <h3 className="font-semibold">{firstRecord.libelle || 'Écriture sans libellé'}</h3>
                           <p className="text-sm opacity-80">{firstRecord.date_operation || 'Date inconnue'}</p>
@@ -129,8 +120,7 @@ const ConsultationI = () => {
                         )}
                       </div>
 
-                      {/* Entries Table */}
-                      <div className="overflow-x-auto">
+                                            <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
                           <thead className="bg-gray-50">
                             <tr>
@@ -166,8 +156,7 @@ const ConsultationI = () => {
                               </tr>
                             ))}
                           </tbody>
-                          {/* Totals Footer */}
-                          <tfoot className="bg-gray-50">
+                                                    <tfoot className="bg-gray-50">
                             <tr>
                               <td colSpan="2" className="px-6 py-3 text-sm font-medium text-gray-900 text-right">
                                 Totaux:
@@ -198,8 +187,7 @@ const ConsultationI = () => {
               )}
             </div>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
+                        {totalPages > 1 && (
               <div className="mt-8 flex items-center justify-between">
                 <button
                   onClick={goToPrevious}

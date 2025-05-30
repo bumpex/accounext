@@ -1,4 +1,3 @@
-// components/UserHeader.js
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaUserCircle, FaSignOutAlt } from 'react-icons/fa';

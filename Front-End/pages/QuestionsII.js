@@ -13,20 +13,15 @@ const QuestionsComptes = () => {
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
   const [classes, setClasses] = useState([]);
   const navigate = useNavigate(); 
-
-  // Fetch existing accounts and classes from database
   useEffect(() => {
     const fetchData = async () => {
       setIsLoadingAccounts(true);
       try {
-        // Fetch accounts
         const accountsResponse = await fetch("http://localhost:8000/accounts.php");
         if (accountsResponse.ok) {
           const accountsData = await accountsResponse.json();
           setAccountSuggestions(accountsData.data || []);
         }
-
-        // Fetch classes
         const classesResponse = await fetch("http://localhost:8000/classes.php");
         if (classesResponse.ok) {
           const classesData = await classesResponse.json();
@@ -111,8 +106,6 @@ const QuestionsComptes = () => {
       ...prev,
       [key]: value
     }));
-
-    // Auto-fill account name when account number is recognized
     if (key === "numero_compte") {
       const matchedAccount = accountSuggestions.find(
         acc => acc.numero_compte === value
@@ -126,8 +119,6 @@ const QuestionsComptes = () => {
           class_id: matchedAccount.class_id || ""
         }));
       }
-
-      // Show suggestions if input length > 0
       if (value.length > 0) {
         setShowSuggestions(true);
       } else {
@@ -151,10 +142,7 @@ const QuestionsComptes = () => {
   );
 
   const submitData = async () => {
-    // Get user from localStorage at the start
     const user = JSON.parse(localStorage.getItem("user"));
-
-    // Validate class_id is selected
     if (!answers.class_id || answers.class_id === "0") {
       alert("Veuillez sélectionner une classe valide (1 à 7)");
       setCurrentQuestion(2); // Jump to class selection
@@ -228,8 +216,7 @@ const QuestionsComptes = () => {
           className="w-full px-4 py-3 bg-[#f2f1ec] border border-[#083344]/20 rounded-lg text-[#083344] placeholder-[#083344]/50 focus:outline-none focus:ring-2 focus:ring-[#083344] focus:border-transparent transition-all duration-300"
         />
         
-        {/* Account number suggestions */}
-        {currentQ.key === "numero_compte" && showSuggestions && (
+                {currentQ.key === "numero_compte" && showSuggestions && (
           <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-auto">
             {isLoadingAccounts ? (
               <div className="p-2 text-center text-gray-500">Chargement...</div>
@@ -259,8 +246,7 @@ const QuestionsComptes = () => {
       <UserMenu className="mb-10" />
       <div className="flex-1 p-8 mt-10 overflow-y-auto">
         <div className="max-w-2xl mx-auto">
-          {/* Progress bar */}
-          <div className="mb-8">
+                    <div className="mb-8">
             <div className="flex justify-between mb-2">
               <span className="text-[#083344]">Question {currentQuestion + 1} sur {questions.length}</span>
               <span className="text-[#083344]">{Math.round(((currentQuestion + 1) / questions.length) * 100)}%</span>
@@ -273,8 +259,7 @@ const QuestionsComptes = () => {
             </div>
           </div>
 
-          {/* Question Card */}
-          <div className="bg-white p-8 rounded-2xl shadow-lg transform transition-all duration-500 hover:scale-[1.02]">
+                    <div className="bg-white p-8 rounded-2xl shadow-lg transform transition-all duration-500 hover:scale-[1.02]">
             <h2 className="text-2xl font-bold text-[#083344] mb-6">
               {questions[currentQuestion].question}
             </h2>
@@ -283,8 +268,7 @@ const QuestionsComptes = () => {
               {renderInputField()}
             </div>
 
-            {/* Navigation Buttons */}
-            <div className="flex justify-between items-center">
+                        <div className="flex justify-between items-center">
               <button
                 onClick={handlePrevious}
                 disabled={currentQuestion === 0}

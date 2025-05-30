@@ -30,8 +30,6 @@ export default function Clients() {
     for (const key in formData) {
       clientData.append(key, formData[key]);
     }
-
-    // Replace with your actual backend endpoint URL:
     const response = await axios({
       method: 'POST',
       url: 'http://localhost:8000/clients.php',  

@@ -15,8 +15,6 @@ const ConsultationII = () => {
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-
-  // Fetch classes
   useEffect(() => {
     const timer = setTimeout(() => {
       setMinimumLoadTimePassed(true);
@@ -31,8 +29,6 @@ const ConsultationII = () => {
 
     return () => clearTimeout(timer);
   }, []);
-
-  // Fetch accounts based on selected class
   useEffect(() => {
     let url = 'http://localhost/accounext/get_comptes.php';
     if (selectedClass) {
@@ -56,15 +52,11 @@ const ConsultationII = () => {
         }
       });
   }, [selectedClass, minimumLoadTimePassed]);
-
-  // Filter data by search term
   const filteredData = comptes.filter(
     (item) =>
       item.NumeroCompte.includes(searchTerm) ||
       item.NomCompte.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  // Pagination logic
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const paginatedData = filteredData.slice(
     (currentPage - 1) * itemsPerPage,
@@ -102,8 +94,6 @@ const ConsultationII = () => {
     
     return pages;
   };
-
-  // Only show content when both data is loaded AND 3 seconds have passed
   const showContent = !loading && minimumLoadTimePassed;
 
   if (!showContent) {
@@ -125,18 +115,15 @@ const ConsultationII = () => {
       <div className="flex-1 overflow-y-auto">
         <div className="p-6 md:p-8">
           <div className="max-w-7xl mx-auto">
-            {/* Header Section */}
-            <div className="text-center mb-10">
+                        <div className="text-center mb-10">
               <h1 className="text-3xl font-bold text-[#083344] mb-2">Consultation des Comptes</h1>
               <div className="w-1/2 h-1 bg-[#083344] bg-opacity-30 mx-auto rounded-full"></div>
             </div>
 
             <ConsultationNavbar />
 
-            {/* Filter + Search Section */}
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-8 mb-6">
-              {/* Class Filter */}
-              <div className="relative w-full md:w-auto">
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-8 mb-6">
+                            <div className="relative w-full md:w-auto">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Filtrer par Classe</label>
                 <select
                   value={selectedClass}
@@ -152,8 +139,7 @@ const ConsultationII = () => {
                 </select>
               </div>
 
-              {/* Search Input */}
-              <div className="relative w-full md:w-64">
+                            <div className="relative w-full md:w-64">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Rechercher</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -173,8 +159,7 @@ const ConsultationII = () => {
               </div>
             </div>
 
-            {/* Table Section */}
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
+                        <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-200">
@@ -222,8 +207,7 @@ const ConsultationII = () => {
                 </table>
               </div>
 
-              {/* Pagination */}
-              {filteredData.length > itemsPerPage && (
+                            {filteredData.length > itemsPerPage && (
                 <div className="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
                   <div className="flex-1 flex justify-between sm:hidden">
                     <button

@@ -66,8 +66,6 @@ export default function Dashboard() {
 
     fetchData();
   }, []);
-
-  // Prepare chart data
   const chartData = {
     labels: benefices.map(item => item.annee),
     datasets: [
@@ -117,16 +115,12 @@ export default function Dashboard() {
       }
     }
   };
-
-  // Pagination logic
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = comptes.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(comptes.length / itemsPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
-
-  // Generate pagination numbers with ellipsis
   const getPaginationNumbers = () => {
     const pageNumbers = [];
     const maxVisiblePages = 9;
@@ -138,21 +132,18 @@ export default function Dashboard() {
       }
     } else {
       if (currentPage <= halfVisiblePages + 1) {
-        // Beginning range
         for (let i = 1; i <= maxVisiblePages - 1; i++) {
           pageNumbers.push(i);
         }
         pageNumbers.push('...');
         pageNumbers.push(totalPages);
       } else if (currentPage >= totalPages - halfVisiblePages) {
-        // End range
         pageNumbers.push(1);
         pageNumbers.push('...');
         for (let i = totalPages - (maxVisiblePages - 2); i <= totalPages; i++) {
           pageNumbers.push(i);
         }
       } else {
-        // Middle range
         pageNumbers.push(1);
         pageNumbers.push('...');
         const start = currentPage - halfVisiblePages + 2;
@@ -208,8 +199,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Profit Chart Section */}
-        <div className="bg-white p-6 rounded-lg shadow-md mb-8 max-w-4xl mx-auto">
+                <div className="bg-white p-6 rounded-lg shadow-md mb-8 max-w-4xl mx-auto">
           <div className="flex items-center justify-center gap-2 mb-4">
             <FaChartLine className="text-[#083344] text-xl" />
             <h2 className="text-xl font-semibold text-gray-800">Performance Financière</h2>
@@ -228,8 +218,7 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* History Table */}
-        <div className="mb-8">
+                <div className="mb-8">
           <div className="flex justify-center mb-4">
             <h2 className="text-2xl font-semibold text-gray-800 border-b pb-2 border-gray-300 flex items-center gap-2">
               <FaHistory className="text-[#083344]" />
@@ -280,8 +269,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Accounts Table with Enhanced Pagination */}
-        <div className="mb-8">
+                <div className="mb-8">
           <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-center">
             Plan Comptable
           </h2>
@@ -324,13 +312,11 @@ export default function Dashboard() {
             </table>
           </div>
           
-          {/* Enhanced Pagination */}
-          {comptes.length > itemsPerPage && (
+                    {comptes.length > itemsPerPage && (
             <div className="flex justify-center mt-4">
               <nav className="inline-flex rounded-md shadow">
                 <ul className="flex list-none items-center">
-                  {/* Previous Button */}
-                  <li>
+                                    <li>
                     <button
                       onClick={() => paginate(Math.max(1, currentPage - 1))}
                       disabled={currentPage === 1}
@@ -340,8 +326,7 @@ export default function Dashboard() {
                     </button>
                   </li>
 
-                  {/* Page Numbers */}
-                  {getPaginationNumbers().map((number, index) => (
+                                    {getPaginationNumbers().map((number, index) => (
                     <li key={index}>
                       {number === '...' ? (
                         <span className="px-2 py-1">...</span>
@@ -360,8 +345,7 @@ export default function Dashboard() {
                     </li>
                   ))}
 
-                  {/* Next Button */}
-                  <li>
+                                    <li>
                     <button
                       onClick={() => paginate(Math.min(totalPages, currentPage + 1))}
                       disabled={currentPage === totalPages}

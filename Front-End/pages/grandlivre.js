@@ -12,8 +12,6 @@ export default function GrandLivre() {
   const [error, setError] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-
-  // Fetch account suggestions with debouncing
   useEffect(() => {
     const fetchSuggestions = async () => {
       if (searchTerm.trim().length > 1) {
@@ -52,7 +50,6 @@ export default function GrandLivre() {
       });
       
       if (response.data && response.data.success) {
-        // Adjusted to match the expected response format
         setAccountData({
           accountNumber: response.data.data.accountNumber,
           accountName: response.data.data.accountName,
@@ -106,8 +103,7 @@ export default function GrandLivre() {
 
           <ConsultationNavbar />
           
-          {/* Enhanced Search Bar */}
-          <div className="flex items-center justify-center mb-6">
+                    <div className="flex items-center justify-center mb-6">
             <div className="relative w-full max-w-xl">
               <form onSubmit={handleSearch} className="flex items-center gap-2">
                 <div className="relative flex-1">
@@ -139,8 +135,7 @@ export default function GrandLivre() {
                 </button>
               </form>
 
-              {/* Suggestions Dropdown */}
-              {showSuggestions && suggestions.length > 0 && (
+                            {showSuggestions && suggestions.length > 0 && (
                 <div className="absolute z-10 mt-1 w-full bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                   {suggestions.map((account, index) => (
                     <div
@@ -157,24 +152,21 @@ export default function GrandLivre() {
             </div>
           </div>
          
-          {/* Loading State */}
-          {loading && (
+                    {loading && (
             <div className="text-center py-4">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#002c3c]"></div>
               <p className="mt-2">Loading account data...</p>
             </div>
           )}
           
-          {/* Error State */}
-          {error && (
+                    {error && (
             <div className="text-center text-red-500 py-4">
               <p className="font-medium">Error:</p>
               <p>{error}</p>
             </div>
           )}
           
-          {/* Account Data Table */}
-          {accountData && (
+                    {accountData && (
             <div className="overflow-auto border border-gray-300 rounded-lg shadow-sm">
               <table className="min-w-full border-collapse">
                 <thead>
@@ -203,8 +195,7 @@ export default function GrandLivre() {
                       </td>
                     </tr>
                   ))}
-                  {/* Totals */}
-                  <tr className="bg-gray-100 font-semibold">
+                                    <tr className="bg-gray-100 font-semibold">
                     <td colSpan="2" className="border px-6 py-3 text-right">Total</td>
                     <td className="border px-6 py-3 font-mono text-right">
                       {parseFloat(accountData.totalDebit || 0).toFixed(2)}

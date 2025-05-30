@@ -26,7 +26,7 @@ const Login = () => {
 
       if (data.success) {
         localStorage.setItem('user', JSON.stringify(data.user));
-        navigate('/dashboard'); 
+        navigate('/questionsI'); 
       } else {
         setErrorMsg(data.error || 'Login failed');
       }
@@ -37,13 +37,11 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#083344] to-[#0a4b63] flex flex-col">
-      {/* Logo Section */}
-      <div className="p-6">
+            <div className="p-6">
         <img src={AccountNextLogo} alt="Accounext Logo" className="h-12" />
       </div>
 
-      {/* Login Form Section */}
-      <div className="flex-1 flex items-center justify-center px-4">
+            <div className="flex-1 flex items-center justify-center px-4">
         <div className="bg-white/10 backdrop-blur-lg p-8 rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-500 hover:scale-[1.02]">
           <h2 className="text-3xl font-bold text-center mb-8 text-white">Login</h2>
 

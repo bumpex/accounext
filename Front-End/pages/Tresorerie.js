@@ -20,19 +20,14 @@ const Tresorerie = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Fetch clients
     fetch('http://localhost:8000/get_clients.php')
       .then(res => res.json())
       .then(data => setClients(data))
       .catch(err => console.error('Error fetching clients:', err));
-
-    // Fetch fournisseurs
     fetch('http://localhost:8000/get_fournisseurs.php')
       .then(res => res.json())
       .then(data => setFournisseurs(data))
       .catch(err => console.error('Error fetching fournisseurs:', err));
-
-    // Fetch cash flow flux
     fetch('http://localhost:8000/get_tresorerie_flux.php')
       .then(res => {
         if (!res.ok) throw new Error("Network response was not ok");
@@ -47,8 +42,6 @@ const Tresorerie = () => {
         setError('Failed to load chart data');
         setLoading(false);
       });
-
-    // Fetch solde de trésorerie
     fetch('http://localhost:8000/get_tresorerie_solde.php')
       .then(res => res.json())
       .then(data => {
@@ -77,10 +70,8 @@ const Tresorerie = () => {
 
         <TresorerieNavbar />
 
-        {/* Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-2 mb-2">
-          {/* Solde de trésorerie */}
-          <div className="bg-white rounded-2xl p-8 shadow-lg md:col-span-4">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-2 mb-2">
+                    <div className="bg-white rounded-2xl p-8 shadow-lg md:col-span-4">
             <h2 className="text-xl font-bold text-[#083344] mb-6 flex items-center gap-2">
               <FaWallet />
               Solde de Trésorerie
@@ -105,14 +96,9 @@ const Tresorerie = () => {
               )}
             </div>
 
-            {/* Optional: Add form to edit balance */}
-            {/* <div className="mt-6">
-              <SoldeForm onSoldeUpdate={handleSoldeUpdate} />
-            </div> */}
-          </div>
+                                  </div>
 
-          {/* Flux de trésorerie */}
-          <div className="bg-white rounded-2xl p-8 shadow-lg md:col-span-8">
+                    <div className="bg-white rounded-2xl p-8 shadow-lg md:col-span-8">
             <h2 className="text-xl font-bold text-[#083344] mb-6">Flux de Trésorerie</h2>
 
             {loading ? (
@@ -134,10 +120,8 @@ const Tresorerie = () => {
           </div>
         </div>
 
-        {/* Clients and Fournisseurs */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          {/* Clients */}
-          <div className="bg-white rounded-2xl p-8 shadow-lg">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <div className="bg-white rounded-2xl p-8 shadow-lg">
             <h2 className="text-xl font-bold text-[#083344] mb-6 flex items-center gap-2">
               <FaUsers />
               Clients
@@ -155,8 +139,7 @@ const Tresorerie = () => {
             </div>
           </div>
 
-          {/* Fournisseurs */}
-          <div className="bg-white rounded-2xl p-8 shadow-lg">
+                    <div className="bg-white rounded-2xl p-8 shadow-lg">
             <h2 className="text-xl font-bold text-[#083344] mb-6 flex items-center gap-2">
               <FaStore />
               Fournisseurs

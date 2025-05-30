@@ -31,19 +31,14 @@ try {
     }
 
     $contentType = isset($_SERVER['CONTENT_TYPE']) ? $_SERVER['CONTENT_TYPE'] : '';
-    
-    // Initialize variables
     $date = date('Y-m-d');
     $libelle = '';
     $entries = [];
     $justification = null;
 
     if (strpos($contentType, 'multipart/form-data') !== false) {
-        // Handle multipart form data (file upload)
         $date = $_POST['date'] ?? $date;
         $libelle = $_POST['libelle'] ?? '';
-        
-        // Parse entries from JSON string
         if (isset($_POST['entries']) && !empty($_POST['entries'])) {
             $entries = json_decode($_POST['entries'], true);
             if (json_last_error() !== JSON_ERROR_NONE) {
@@ -53,7 +48,6 @@ try {
         
         $justification = $_FILES['justification'] ?? null;
     } else {
-        // Handle JSON data
         $input = file_get_contents('php://input');
         $data = json_decode($input, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
@@ -65,13 +59,9 @@ try {
         $entries = $data['entries'] ?? [];
         $justification = $data['justification'] ?? null;
     }
-
-    // Validate required fields
     if (empty($libelle) || count($entries) === 0) {
         respond(false, 'Libellé et entrées sont requis');
     }
-
-    // Validate each entry
     foreach ($entries as $entry) {
         if (empty($entry['compteNum']) || empty($entry['compteNom']) || 
             empty($entry['montant']) || !isset($entry['type'])) {
@@ -117,7 +107,6 @@ try {
     $pdo->beginTransaction();
 
     try {
-        // Generate a unique ID for this journal entry
         $journalEntryId = generateUuid();
         
         $stmt = $pdo->prepare("
@@ -127,7 +116,6 @@ try {
         ");
 
         foreach ($entries as $entry) {
-            // First insert the entry
             $success = $stmt->execute([
                 $journalEntryId,
                 $entry['compteNum'],
@@ -143,8 +131,6 @@ try {
                 $error = $stmt->errorInfo();
                 throw new Exception("Insertion échouée: " . $error[2]);
             }
-
-            // Then update the account balance
             $updateStmt = $pdo->prepare("
                 UPDATE comptes 
                 SET montant_" . ($entry['type'] === 'debit' ? 'debit' : 'credit') . " = 

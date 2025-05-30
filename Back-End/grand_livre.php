@@ -19,14 +19,10 @@ try {
     if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
         respond(false, 'Méthode non autorisée');
     }
-
-    // Get account number from query parameter
     $accountNumber = $_GET['accountNumber'] ?? '';
     if (empty($accountNumber)) {
         respond(false, 'Numéro de compte est requis');
     }
-
-    // Get account information
     $stmt = $pdo->prepare("
         SELECT numero_compte, nom_compte, montant_debit, montant_credit 
         FROM comptes 
@@ -38,8 +34,6 @@ try {
     if (!$account) {
         respond(false, 'Compte non trouvé');
     }
-
-    // Get all transactions for this account
     $transactionsStmt = $pdo->prepare("
         SELECT 
             date_operation as date,
@@ -52,8 +46,6 @@ try {
     ");
     $transactionsStmt->execute([$accountNumber]);
     $transactions = $transactionsStmt->fetchAll(PDO::FETCH_ASSOC);
-
-    // Calculate totals from daily operations
     $totalDailyDebit = 0;
     $totalDailyCredit = 0;
     
@@ -61,20 +53,12 @@ try {
         $totalDailyDebit += (float)$transaction['debit'];
         $totalDailyCredit += (float)$transaction['credit'];
     }
-
-    // Calculate initial balance by subtracting daily operations from current balance
     $initialDebit = max(0, (float)$account['montant_debit'] - $totalDailyDebit);
     $initialCredit = max(0, (float)$account['montant_credit'] - $totalDailyCredit);
-
-    // Calculate current totals
     $totalDebit = $initialDebit + $totalDailyDebit;
     $totalCredit = $initialCredit + $totalDailyCredit;
-
-    // Determine balance status
     $balance = abs($totalDebit - $totalCredit);
     $balanceType = ($totalDebit > $totalCredit) ? 'débiteur' : 'créditeur';
-
-    // Prepare response
     $response = [
         'accountNumber' => $account['numero_compte'],
         'accountName' => $account['nom_compte'],
@@ -88,16 +72,12 @@ try {
         'totalDailyDebit' => $totalDailyDebit,
         'totalDailyCredit' => $totalDailyCredit
     ];
-
-    // Add initial balance as first transaction
     $response['transactions'][] = [
         'date' => '',
         'libelle' => 'Solde initial',
         'debit' => $initialDebit > 0 ? number_format($initialDebit, 2, '.', '') : '',
         'credit' => $initialCredit > 0 ? number_format($initialCredit, 2, '.', '') : ''
     ];
-
-    // Add all other transactions
     foreach ($transactions as $transaction) {
         $response['transactions'][] = [
             'date' => $transaction['date'],

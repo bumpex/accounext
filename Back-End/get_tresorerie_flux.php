@@ -4,8 +4,6 @@ header("Access-Control-Allow-Origin: *");
 
 try {
     include '../config/db.php';
-
-    // Fetch all profits from benefices table
     $stmt = $pdo->query("
         SELECT annee, montant 
         FROM benefices 

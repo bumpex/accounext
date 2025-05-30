@@ -27,8 +27,6 @@ export default function Quotidien() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
   const [activeSuggestionField, setActiveSuggestionField] = useState('');
-
-  // Fetch accounts on component mount
   useEffect(() => {
     const fetchAccounts = async () => {
       try {
@@ -40,8 +38,6 @@ export default function Quotidien() {
     };
     fetchAccounts();
   }, []);
-
-  // Validate debit/credit balance whenever entries change
   useEffect(() => {
     validateBalance();
   }, [formData.entries]);
@@ -71,8 +67,6 @@ export default function Quotidien() {
   const handleAccountNumberChange = async (index, value) => {
     const newEntries = [...formData.entries];
     newEntries[index].compteNum = value;
-    
-    // Find matching account
     const matchedAccount = accountSuggestions.find(
       acc => acc.numero_compte === value
     );
@@ -87,8 +81,6 @@ export default function Quotidien() {
   const handleAccountNameChange = async (index, value) => {
     const newEntries = [...formData.entries];
     newEntries[index].compteNom = value;
-    
-    // Find matching account
     const matchedAccount = accountSuggestions.find(
       acc => acc.nom_compte.toLowerCase() === value.toLowerCase()
     );
@@ -129,19 +121,13 @@ export default function Quotidien() {
 
     try {
       const formDataToSend = new FormData();
-      
-      // Add basic fields
       formDataToSend.append('date', formData.date);
       formDataToSend.append('libelle', formData.libelle);
-      
-      // Add entries as properly formatted JSON
       const entriesToSend = formData.entries.map(entry => ({
         ...entry,
         montant: parseFloat(entry.montant)
       }));
       formDataToSend.append('entries', JSON.stringify(entriesToSend));
-
-      // Add file if exists
       if (formData.justification) {
         formDataToSend.append('justification', formData.justification);
       }

@@ -4,7 +4,7 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST");
 header("Access-Control-Allow-Headers: Content-Type");
 
-include '../config/db.php';
+include 'db.php';
 
 try {
     $classId = $_GET['class_id'] ?? null;
